@@ -5,8 +5,6 @@ Abordagem mais flexível e fácil de manter que manipulação de imagens
 from playwright.sync_api import sync_playwright
 from pathlib import Path
 import base64
-import requests
-from io import BytesIO
 
 
 def create_html_story(
@@ -60,41 +58,11 @@ def create_html_story(
 
     # Converter imagem para base64
     try:
-        # Verificar se é URL ou caminho local
-        if product_image_path.startswith(('http://', 'https://')):
-            # Baixar imagem da URL
-            print(f"   INFO - Baixando imagem de: {product_image_path}")
-            response = requests.get(product_image_path, timeout=10)
-            response.raise_for_status()
-            image_bytes = response.content
-
-            # Detectar extensão pelo content-type ou pela URL
-            content_type = response.headers.get('content-type', '')
-            if 'png' in content_type:
-                image_ext = 'png'
-            elif 'jpeg' in content_type or 'jpg' in content_type:
-                image_ext = 'jpeg'
-            elif 'webp' in content_type:
-                image_ext = 'webp'
-            else:
-                # Fallback: tentar extrair da URL
-                image_ext = Path(product_image_path).suffix[1:] or 'jpeg'
-
-            image_data = base64.b64encode(image_bytes).decode('utf-8')
-            print(f"   OK - Imagem baixada ({len(image_bytes)} bytes)")
-        else:
-            # Abrir arquivo local
-            with open(product_image_path, 'rb') as f:
-                image_bytes = f.read()
-                image_data = base64.b64encode(image_bytes).decode('utf-8')
-                image_ext = Path(product_image_path).suffix[1:]
-            print(f"   OK - Imagem carregada")
-
-        image_base64 = f"data:image/{image_ext};base64,{image_data}"
-
-    except requests.RequestException as e:
-        print(f"   ERRO - Falha ao baixar imagem: {e}")
-        return None
+        with open(product_image_path, 'rb') as f:
+            image_data = base64.b64encode(f.read()).decode('utf-8')
+            image_ext = Path(product_image_path).suffix[1:]  # Remove o ponto
+            image_base64 = f"data:image/{image_ext};base64,{image_data}"
+        print(f"   OK - Imagem carregada")
     except Exception as e:
         print(f"   ERRO - Erro ao carregar imagem: {e}")
         return None

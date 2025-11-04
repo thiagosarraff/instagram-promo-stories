@@ -8,6 +8,7 @@ test_story_image.jpg
 *.jpeg
 *.png
 *.mp4
+story*
 
 # Python
 __pycache__/
