@@ -62,20 +62,24 @@ Cria e publica um story promocional no Instagram.
 | Campo | Tipo | Obrigatório | Formato | Descrição | Exemplo |
 |-------|------|-------------|---------|-----------|---------|
 | `product_name` | string | ✅ Sim | 1-200 caracteres | Nome do produto | `"Carregador Apple USB-C 20W"` |
-| `price` | string | ✅ Sim | 1-50 caracteres | Preço atual do produto | `"R$ 35,41"` |
+| `price` | string | ✅ Sim | 1-50 caracteres | Preço atual do produto | `"R$ 35,41"` ou `"35.41"` |
 | `product_image_url` | string | ✅ Sim | URL válida | URL da imagem do produto (HTTP/HTTPS) | `"https://exemplo.com/produto.jpg"` |
 | `affiliate_link` | string | ✅ Sim | URL válida | Link de afiliado ou produto para swipe-up | `"https://mercadolivre.com.br/MLB-123456"` |
 | `marketplace_name` | string | ✅ Sim | 1-50 caracteres | Nome do marketplace (texto do botão) | `"mercadolivre"`, `"amazon"`, `"magalu"` |
+| `headline` | string | ⚪ Opcional | 1-100 caracteres | Texto do título no topo do story | `"OFERTA RELÂMPAGO"` (padrão: `"OFERTA IMPERDÍVEL"`) |
 | `template_scenario` | integer | ⚪ Opcional | 1, 2, 3 ou 4 | Cenário do template (auto-selecionado se omitido) | `1` |
-| `price_old` | string | ⚪ Opcional | 1-50 caracteres | Preço antigo/riscado (mostra desconto) | `"R$ 48,50"` |
+| `price_old` | string | ⚪ Opcional | 1-50 caracteres | Preço antigo/riscado (mostra desconto) | `"R$ 48,50"` ou `"48.50"` |
 | `coupon_code` | string | ⚪ Opcional | 1-50 caracteres | Código do cupom promocional | `"PROMO10"` |
 
 #### 📋 Formatos Esperados
 
-**`price`**: Aceita formatos brasileiros com cifrão
-- ✅ `"R$ 35,41"` (recomendado)
-- ✅ `"R$35,41"`
-- ✅ `"35,41"`
+**`price`** e **`price_old`**: Formatos flexíveis - aceita ponto ou vírgula
+- ✅ `"R$ 35,41"` → normalizado para `R$ 35,41`
+- ✅ `"R$ 35.41"` → normalizado para `R$ 35,41`
+- ✅ `"35.41"` → normalizado para `R$ 35,41`
+- ✅ `"35,41"` → normalizado para `R$ 35,41`
+- ✅ `"35"` → normalizado para `R$ 35,00`
+- ⚡ Sistema converte automaticamente para formato brasileiro (vírgula decimal)
 
 **`product_image_url`**: URL pública acessível
 - ✅ Formatos: JPG, JPEG, PNG, WebP
@@ -111,6 +115,12 @@ Cria e publica um story promocional no Instagram.
 **`coupon_code`**: Código do cupom (OPCIONAL)
 - ✅ Texto simples: `"PROMO10"`, `"BLACK50"`
 - 🎨 Renderiza em destaque com fundo colorido
+
+**`headline`**: Título do story (OPCIONAL)
+- ✅ Texto em MAIÚSCULAS recomendado
+- 📏 Máximo 100 caracteres (ajuste automático de fonte)
+- 🎨 Padrão: `"OFERTA IMPERDÍVEL"`
+- 💡 Exemplos: `"OFERTA RELÂMPAGO"`, `"BLACK FRIDAY"`, `"MEGA PROMOÇÃO"`
 
 #### 📤 Response
 
@@ -171,11 +181,13 @@ curl -X POST http://localhost:5000/post-story \
   -H "Content-Type: application/json" \
   -d '{
     "product_name": "Carregador Fonte Apple iPad iPhone Turbo Original USB-C 20W",
-    "price": "R$ 35,41",
+    "price": "35.41",
+    "price_old": "48.50",
     "product_image_url": "https://minio.exemplo.com/products/carregador-apple.png",
     "affiliate_link": "https://mercadolivre.com.br/MLB-3456789012",
     "marketplace_name": "mercadolivre",
-    "template_scenario": 1
+    "headline": "OFERTA RELÂMPAGO",
+    "coupon_code": "PROMO10"
   }'
 ```
 
@@ -191,10 +203,12 @@ curl -X POST http://localhost:5000/post-story \
   "body": {
     "product_name": "={{ $json.productName }}",
     "price": "={{ $json.price }}",
+    "price_old": "={{ $json.priceOld }}",
     "product_image_url": "={{ $json.imageUrl }}",
     "affiliate_link": "={{ $json.affiliateLink }}",
     "marketplace_name": "={{ $json.marketplace }}",
-    "template_scenario": 1
+    "headline": "={{ $json.headline || 'OFERTA IMPERDÍVEL' }}",
+    "coupon_code": "={{ $json.couponCode }}"
   }
 }
 ```

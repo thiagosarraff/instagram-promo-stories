@@ -38,6 +38,12 @@ class PostStoryRequest(BaseModel):
         max_length=50,
         description="Marketplace name (e.g., 'mercadolivre', 'amazon')"
     )
+    headline: Optional[str] = Field(
+        None,
+        min_length=1,
+        max_length=100,
+        description="Headline text at the top of the story (e.g., 'OFERTA IMPERDÍVEL'). Optional - defaults to 'OFERTA IMPERDÍVEL'"
+    )
     template_scenario: Optional[int] = Field(
         None,
         ge=1,
@@ -73,7 +79,7 @@ class PostStoryRequest(BaseModel):
                     "product_image_url": "https://example.com/product.jpg",
                     "affiliate_link": "https://mercadolivre.com.br/product-123",
                     "marketplace_name": "mercadolivre",
-                    "template_scenario": 1
+                    "headline": "OFERTA RELÂMPAGO"
                 },
                 {
                     "product_name": "Fone de Ouvido Bluetooth Sony",
@@ -82,15 +88,17 @@ class PostStoryRequest(BaseModel):
                     "product_image_url": "https://example.com/fone.jpg",
                     "affiliate_link": "https://amazon.com.br/fone-sony",
                     "marketplace_name": "amazon",
-                    "coupon_code": "TECH15"
+                    "coupon_code": "TECH15",
+                    "headline": "PROMOÇÃO BLACK FRIDAY"
                 },
                 {
                     "product_name": "Smart TV 50 polegadas",
-                    "price": "R$ 1.899,00",
-                    "price_old": "R$ 2.499,00",
+                    "price": "1899.00",
+                    "price_old": "2499.00",
                     "product_image_url": "https://example.com/tv.jpg",
                     "affiliate_link": "https://magalu.com/tv-50",
-                    "marketplace_name": "magalu"
+                    "marketplace_name": "magalu",
+                    "headline": "OFERTA ESPECIAL"
                 }
             ]
         }

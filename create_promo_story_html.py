@@ -99,18 +99,57 @@ async def create_html_story(
         print(f"   ERRO - Erro ao carregar imagem: {e}")
         return None
 
+    # Função auxiliar para normalizar preços (aceita ponto ou vírgula)
+    def normalize_price(price_str):
+        """
+        Normaliza string de preço para formato brasileiro com vírgula
+        Aceita: "R$ 35,41", "R$ 35.41", "35,41", "35.41", "35"
+        Retorna: "R$ 35,41"
+        """
+        if not price_str:
+            return ""
+
+        # Remove R$ e espaços
+        clean = price_str.replace('R$', '').replace(' ', '').strip()
+
+        # Se não tem separador decimal, adiciona ,00
+        if ',' not in clean and '.' not in clean:
+            return f"R$ {clean},00"
+
+        # Substitui ponto por vírgula (normaliza para formato BR)
+        if '.' in clean:
+            # Verifica se é separador decimal (último ponto na string)
+            if clean.count('.') == 1 and len(clean.split('.')[1]) <= 2:
+                clean = clean.replace('.', ',')
+
+        # Garante 2 casas decimais
+        if ',' in clean:
+            partes = clean.split(',')
+            inteiros = partes[0]
+            decimais = partes[1] if len(partes) > 1 else '00'
+            # Preenche ou trunca para 2 dígitos
+            decimais = (decimais + '00')[:2]
+            return f"R$ {inteiros},{decimais}"
+
+        return f"R$ {clean},00"
+
+    # Normalizar preços
+    price_new_normalized = normalize_price(price_new)
+    price_old_normalized = normalize_price(price_old) if price_old else None
+
     # Calcular desconto se houver preço antigo
     discount_percent = 0
     discount_text = ""
 
-    if price_old:
+    if price_old_normalized:
         try:
-            old_value = float(price_old.replace('R$', '').replace(' ', '').replace(',', '.'))
-            new_value = float(price_new.replace('R$', '').replace(' ', '').replace(',', '.'))
+            old_value = float(price_old_normalized.replace('R$', '').replace(' ', '').replace(',', '.'))
+            new_value = float(price_new_normalized.replace('R$', '').replace(' ', '').replace(',', '.'))
             discount_percent = round(((old_value - new_value) / old_value) * 100)
             discount_text = f"{discount_percent}% OFF"
             print(f"   OK - Desconto calculado: {discount_text}")
-        except:
+        except Exception as e:
+            print(f"   ⚠️  Erro ao calcular desconto: {e}")
             discount_percent = 0
             discount_text = ""
 
@@ -119,15 +158,15 @@ async def create_html_story(
         """Separa inteiros e centavos para estilização diferenciada"""
         if not price_str:
             return "", ""
-        # Remove R$ e espaços, remove vírgula
+        # Remove R$ e espaços
         clean = price_str.replace('R$', '').strip()
         if ',' in clean:
             inteiros, centavos = clean.split(',')
             return f"R$ {inteiros}", centavos
         else:
-            return f"R$ {clean}", ""
+            return f"R$ {clean}", "00"
 
-    price_new_int, price_new_cents = format_price_with_cents(price_new)
+    price_new_int, price_new_cents = format_price_with_cents(price_new_normalized)
 
     # Ajustar tamanho da headline baseado no comprimento para caber em 2 linhas
     headline_length = len(headline)
@@ -345,7 +384,7 @@ async def create_html_story(
     <!-- Preços -->
     <div class="price-container">
         <!-- Preço antigo (se houver) -->
-        <div class="price-old {'hidden' if not price_old else ''}">{price_old if price_old else ''}</div>
+        <div class="price-old {'hidden' if not price_old_normalized else ''}">{price_old_normalized if price_old_normalized else ''}</div>
 
         <!-- Preço novo + Desconto -->
         <div class="price-new-container">

@@ -134,9 +134,12 @@ async def post_story(request: PostStoryRequest) -> PostStoryResponse:
         # Step 1: Create story image
         logger.info(f"[{request_id}] Creating story image...")
         try:
+            # Use custom headline or default
+            headline = request.headline if request.headline else "OFERTA IMPERDÍVEL"
+
             result = await create_html_story(
                 product_image_path=request.product_image_url,  # URL will be downloaded by create_html_story
-                headline="OFERTA IMPERDÍVEL",  # Standard headline
+                headline=headline,
                 product_name=request.product_name,
                 price_new=request.price,
                 price_old=request.price_old,  # Optional field from request
@@ -183,7 +186,7 @@ async def post_story(request: PostStoryRequest) -> PostStoryResponse:
                 username=instagram_username,
                 password=instagram_password,
                 product_image_path=request.product_image_url,
-                headline="OFERTA IMPERDÍVEL",
+                headline=headline,  # Use same headline from step 1
                 product_name=request.product_name,
                 price_new=request.price,
                 price_old=request.price_old,  # Optional field from request
