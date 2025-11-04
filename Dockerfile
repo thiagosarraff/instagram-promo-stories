@@ -1,6 +1,6 @@
 # Multi-stage Dockerfile for Instagram Story Automation
 # Stage 1: Build
-FROM python:3.11-slim as builder
+FROM python:3.11-slim AS builder
 
 WORKDIR /tmp
 
@@ -24,7 +24,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     chromium \
     chromium-driver \
     fonts-liberation \
-    libappindicator1 \
     libappindicator3-1 \
     libatk-bridge2.0-0 \
     libatk1.0-0 \

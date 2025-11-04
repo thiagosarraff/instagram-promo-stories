@@ -1,5 +1,7 @@
 services:
   insta-stories:
+    networks:
+      - default
     build:
       context: .
       dockerfile: Dockerfile
@@ -58,3 +60,8 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+
+networks:
+  default:
+    name: setup_default
+    external: true
