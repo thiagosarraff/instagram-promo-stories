@@ -1,0 +1,60 @@
+# Variáveis de ambiente (credenciais)
+.env
+config_instagram.py
+
+# Imagens de teste geradas
+test_story_image.jpg
+*.jpg
+*.jpeg
+*.png
+*.mp4
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+ENV/
+env/
+.venv
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.bmad-core/
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Instagrapi cache/session
+*.json
+
+# Documentação dev
+docs/
