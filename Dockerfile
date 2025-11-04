@@ -14,7 +14,9 @@ COPY requirements.txt .
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 RUN pip install --upgrade pip setuptools wheel && \
-    pip install --no-cache-dir -r requirements.txt
+    pip install --no-cache-dir -r requirements.txt && \
+    playwright install-deps chromium && \
+    playwright install chromium
 
 # Stage 2: Runtime
 FROM python:3.11-slim
@@ -51,11 +53,18 @@ WORKDIR /app
 COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
+# Create appuser early (before copying Playwright browsers)
+RUN useradd -m -u 1000 appuser
+
+# Copy Playwright browsers from builder
+COPY --from=builder /root/.cache/ms-playwright /home/appuser/.cache/ms-playwright
+
 # Copy application code
 COPY . .
 
-# Create a non-root user for running the app
-RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+# Fix ownership
+RUN chown -R appuser:appuser /app /home/appuser/.cache
+
 USER appuser
 
 # Expose API port
