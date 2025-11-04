@@ -155,7 +155,7 @@ async def post_story(request: PostStoryRequest) -> PostStoryResponse:
         # Step 2: Post to Instagram
         logger.info(f"[{request_id}] Posting to Instagram...")
         try:
-            success = post_html_story_to_instagram(
+            success = await post_html_story_to_instagram(
                 username=instagram_username,
                 password=instagram_password,
                 product_image_path=request.product_image_url,

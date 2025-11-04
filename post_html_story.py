@@ -14,7 +14,7 @@ from create_promo_story_html import create_html_story
 load_dotenv()
 
 
-def post_html_story_to_instagram(
+async def post_html_story_to_instagram(
     username: str,
     password: str,
     product_image_path: str,
@@ -55,7 +55,7 @@ def post_html_story_to_instagram(
 
     # ETAPA 1: Criar story HTML
     print("\n📝 ETAPA 1: Criando story HTML...")
-    story_path, coords = create_html_story(
+    story_path, coords = await create_html_story(
         product_image_path=product_image_path,
         headline=headline,
         product_name=product_name,
@@ -134,7 +134,7 @@ def post_html_story_to_instagram(
         return False
 
 
-def main():
+async def main():
     """
     Exemplo de uso - Posta o cenário 2 (completo com cupom)
     """
@@ -172,7 +172,7 @@ def main():
         return
 
     # Postar story
-    success = post_html_story_to_instagram(
+    success = await post_html_story_to_instagram(
         username=USERNAME,
         password=PASSWORD,
         product_image_path="placeholder_product.png",
@@ -193,4 +193,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    import asyncio
+    asyncio.run(main())
