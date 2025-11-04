@@ -27,7 +27,7 @@ async def post_html_story_to_instagram(
     product_url: str = None,
     caption: str = None,
     output_path: str = "story_to_post.jpg"
-) -> bool:
+) -> tuple:
     """
     Cria story HTML e posta no Instagram em uma operação completa
 
@@ -46,7 +46,7 @@ async def post_html_story_to_instagram(
         output_path: Caminho para salvar a imagem gerada
 
     Returns:
-        bool: True se criou e postou com sucesso
+        tuple: (success: bool, story_id: str) - True se criou e postou com sucesso, story ID se disponível
     """
 
     print("=" * 70)
@@ -68,7 +68,7 @@ async def post_html_story_to_instagram(
 
     if not story_path:
         print("\n❌ FALHA: Não foi possível criar o story")
-        return False
+        return (False, None)
 
     print(f"\n✅ Story criado: {story_path}")
 
@@ -100,7 +100,7 @@ async def post_html_story_to_instagram(
         print("   2. Isso gerará o arquivo de sessão")
         print("   3. Copie o arquivo de sessão para o servidor Docker")
         print("   4. O Instagram pediu verificação porque é um novo dispositivo")
-        return False
+        return (False, None)
 
     # ETAPA 3: Postar story
     print(f"\n📤 ETAPA 3: Postando story no Instagram...")
@@ -144,11 +144,11 @@ async def post_html_story_to_instagram(
         print("=" * 70)
         print(f"\n📱 Verifique seu Instagram para ver o story publicado!")
 
-        return True
+        return (True, str(story.pk))
 
     except Exception as e:
         print(f"\n❌ ERRO ao postar story: {e}")
-        return False
+        return (False, None)
 
 
 async def main():

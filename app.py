@@ -76,17 +76,41 @@ async def post_story(request: PostStoryRequest) -> PostStoryResponse:
         logger.info(f"[{request_id}] Received request for product: {request.product_name}")
         logger.debug(f"[{request_id}] Template: {request.template_scenario}, Marketplace: {request.marketplace_name}")
 
-        # Validate template scenario
-        if request.template_scenario not in [1, 2, 3, 4]:
-            logger.warning(f"[{request_id}] Invalid template_scenario: {request.template_scenario}")
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail={
-                    "status": "error",
-                    "message": "Invalid template_scenario. Must be 1, 2, 3, or 4",
-                    "error_code": "VALIDATION_ERROR"
-                }
-            )
+        # Auto-select template scenario if not provided
+        if request.template_scenario is None:
+            # Template selection logic based on available data:
+            # Scenario 1: Basic (only price)
+            # Scenario 2: With coupon (price + coupon_code)
+            # Scenario 3: With discount (price + price_old)
+            # Scenario 4: Complete (price + price_old + coupon_code)
+
+            has_old_price = request.price_old is not None and request.price_old.strip() != ""
+            has_coupon = request.coupon_code is not None and request.coupon_code.strip() != ""
+
+            if has_old_price and has_coupon:
+                template_scenario = 4  # Complete: old price + coupon
+            elif has_coupon:
+                template_scenario = 2  # With coupon only
+            elif has_old_price:
+                template_scenario = 3  # With discount only
+            else:
+                template_scenario = 1  # Basic
+
+            logger.info(f"[{request_id}] Auto-selected template scenario: {template_scenario} "
+                       f"(old_price={has_old_price}, coupon={has_coupon})")
+        else:
+            template_scenario = request.template_scenario
+            # Validate template scenario if provided
+            if template_scenario not in [1, 2, 3, 4]:
+                logger.warning(f"[{request_id}] Invalid template_scenario: {template_scenario}")
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail={
+                        "status": "error",
+                        "message": "Invalid template_scenario. Must be 1, 2, 3, or 4",
+                        "error_code": "VALIDATION_ERROR"
+                    }
+                )
 
         # Get Instagram credentials from configuration
         try:
@@ -115,8 +139,8 @@ async def post_story(request: PostStoryRequest) -> PostStoryResponse:
                 headline="OFERTA IMPERDÍVEL",  # Standard headline
                 product_name=request.product_name,
                 price_new=request.price,
-                price_old=None,  # Not provided in request
-                coupon_code=None,  # Not provided in request
+                price_old=request.price_old,  # Optional field from request
+                coupon_code=request.coupon_code,  # Optional field from request
                 source=request.marketplace_name,
                 output_path=output_path
             )
@@ -155,15 +179,15 @@ async def post_story(request: PostStoryRequest) -> PostStoryResponse:
         # Step 2: Post to Instagram
         logger.info(f"[{request_id}] Posting to Instagram...")
         try:
-            success = await post_html_story_to_instagram(
+            success, story_id = await post_html_story_to_instagram(
                 username=instagram_username,
                 password=instagram_password,
                 product_image_path=request.product_image_url,
                 headline="OFERTA IMPERDÍVEL",
                 product_name=request.product_name,
                 price_new=request.price,
-                price_old=None,
-                coupon_code=None,
+                price_old=request.price_old,  # Optional field from request
+                coupon_code=request.coupon_code,  # Optional field from request
                 source=request.marketplace_name,
                 product_url=request.affiliate_link,
                 output_path=output_path
@@ -180,7 +204,7 @@ async def post_story(request: PostStoryRequest) -> PostStoryResponse:
                     }
                 )
 
-            logger.info(f"[{request_id}] Story posted successfully to Instagram")
+            logger.info(f"[{request_id}] Story posted successfully to Instagram (ID: {story_id})")
 
         except HTTPException:
             raise
@@ -200,7 +224,7 @@ async def post_story(request: PostStoryRequest) -> PostStoryResponse:
         return PostStoryResponse(
             status="success",
             message="Story posted successfully",
-            story_id=None,  # instagrapi doesn't return story ID easily
+            story_id=story_id,
             error_code=None
         )
 

@@ -55,32 +55,171 @@ LOG_LEVEL=INFO
 
 ### POST /post-story
 
-```json
-{
-  "product_name": "Carregador USB-C 20W",
-  "price": "R$ 35,41",
-  "product_image_url": "https://exemplo.com/produto.jpg",
-  "affiliate_link": "https://link.com",
-  "marketplace_name": "Mercado Livre",
-  "template_scenario": 1
-}
-```
+Cria e publica um story promocional no Instagram.
 
-**Resposta:**
+#### 📥 Request Body (JSON)
+
+| Campo | Tipo | Obrigatório | Formato | Descrição | Exemplo |
+|-------|------|-------------|---------|-----------|---------|
+| `product_name` | string | ✅ Sim | 1-200 caracteres | Nome do produto | `"Carregador Apple USB-C 20W"` |
+| `price` | string | ✅ Sim | 1-50 caracteres | Preço atual do produto | `"R$ 35,41"` |
+| `product_image_url` | string | ✅ Sim | URL válida | URL da imagem do produto (HTTP/HTTPS) | `"https://exemplo.com/produto.jpg"` |
+| `affiliate_link` | string | ✅ Sim | URL válida | Link de afiliado ou produto para swipe-up | `"https://mercadolivre.com.br/MLB-123456"` |
+| `marketplace_name` | string | ✅ Sim | 1-50 caracteres | Nome do marketplace (texto do botão) | `"mercadolivre"`, `"amazon"`, `"magalu"` |
+| `template_scenario` | integer | ⚪ Opcional | 1, 2, 3 ou 4 | Cenário do template (auto-selecionado se omitido) | `1` |
+| `price_old` | string | ⚪ Opcional | 1-50 caracteres | Preço antigo/riscado (mostra desconto) | `"R$ 48,50"` |
+| `coupon_code` | string | ⚪ Opcional | 1-50 caracteres | Código do cupom promocional | `"PROMO10"` |
+
+#### 📋 Formatos Esperados
+
+**`price`**: Aceita formatos brasileiros com cifrão
+- ✅ `"R$ 35,41"` (recomendado)
+- ✅ `"R$35,41"`
+- ✅ `"35,41"`
+
+**`product_image_url`**: URL pública acessível
+- ✅ Formatos: JPG, JPEG, PNG, WebP
+- ✅ Tamanho recomendado: 800x800px a 1500x1500px
+- ⚠️ URL deve ser pública (sem autenticação)
+
+**`marketplace_name`**: Valores suportados com mapeamento automático
+- `"mercadolivre"` → LINK MERCADO LIVRE
+- `"amazon"` → LINK AMAZON
+- `"magalu"` → LINK MAGALU
+- `"americanas"` → LINK AMERICANAS
+- `"shopee"` → LINK SHOPEE
+- `"aliexpress"` → LINK ALIEXPRESS
+- `"casasbahia"` → LINK CASAS BAHIA
+- `"extra"` → LINK EXTRA
+- `"pontofrio"` → LINK PONTO FRIO
+- `"submarino"` → LINK SUBMARINO
+- Outros valores → `LINK {NOME_CUSTOMIZADO}`
+
+**`template_scenario`**: Seleção automática de template (OPCIONAL)
+- **AUTO** (padrão se omitido): Sistema escolhe baseado em dados fornecidos
+  - Cenário 1: Apenas preço
+  - Cenário 2: Preço + cupom
+  - Cenário 3: Preço + preço antigo (desconto)
+  - Cenário 4: Preço + preço antigo + cupom (completo)
+- **Manual**: `1`, `2`, `3`, ou `4` para forçar cenário específico
+
+**`price_old`**: Preço anterior/riscado (OPCIONAL)
+- ✅ Formato igual ao `price`: `"R$ 48,50"`
+- ⚡ Ativa cálculo automático de desconto percentual
+- 🎨 Renderiza com texto riscado + badge de % OFF
+
+**`coupon_code`**: Código do cupom (OPCIONAL)
+- ✅ Texto simples: `"PROMO10"`, `"BLACK50"`
+- 🎨 Renderiza em destaque com fundo colorido
+
+#### 📤 Response
+
+**Sucesso (200 OK):**
 ```json
 {
   "status": "success",
-  "message": "Story posted successfully"
+  "message": "Story posted successfully",
+  "story_id": "3758456134287145845",
+  "error_code": null
 }
 ```
 
+**Erro de Validação (400 Bad Request):**
+```json
+{
+  "status": "error",
+  "message": "Invalid template_scenario. Must be 1, 2, 3, or 4",
+  "story_id": null,
+  "error_code": "VALIDATION_ERROR"
+}
+```
+
+**Erro de Renderização (500 Internal Server Error):**
+```json
+{
+  "status": "error",
+  "message": "Failed to create story image from product data",
+  "story_id": null,
+  "error_code": "RENDERING_FAILED"
+}
+```
+
+**Erro de Postagem (500 Internal Server Error):**
+```json
+{
+  "status": "error",
+  "message": "Failed to post story to Instagram",
+  "story_id": null,
+  "error_code": "POSTING_FAILED"
+}
+```
+
+#### 🔑 Códigos de Erro
+
+| Código | Descrição | Ação Recomendada |
+|--------|-----------|------------------|
+| `VALIDATION_ERROR` | Dados inválidos no request | Verifique formato dos campos obrigatórios |
+| `CONFIG_ERROR` | Credenciais Instagram ausentes | Configure `INSTAGRAM_USERNAME` e `INSTAGRAM_PASSWORD` no `.env` |
+| `RENDERING_FAILED` | Falha ao gerar imagem do story | Verifique se `product_image_url` é acessível |
+| `POSTING_FAILED` | Falha ao postar no Instagram | Verifique credenciais e sessão do Instagram |
+| `INTERNAL_ERROR` | Erro inesperado no servidor | Verifique logs do container |
+
+#### 📝 Exemplo Completo (cURL)
+
+```bash
+curl -X POST http://localhost:5000/post-story \
+  -H "Content-Type: application/json" \
+  -d '{
+    "product_name": "Carregador Fonte Apple iPad iPhone Turbo Original USB-C 20W",
+    "price": "R$ 35,41",
+    "product_image_url": "https://minio.exemplo.com/products/carregador-apple.png",
+    "affiliate_link": "https://mercadolivre.com.br/MLB-3456789012",
+    "marketplace_name": "mercadolivre",
+    "template_scenario": 1
+  }'
+```
+
+#### 📝 Exemplo n8n HTTP Request Node
+
+```json
+{
+  "method": "POST",
+  "url": "http://localhost:5000/post-story",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "body": {
+    "product_name": "={{ $json.productName }}",
+    "price": "={{ $json.price }}",
+    "product_image_url": "={{ $json.imageUrl }}",
+    "affiliate_link": "={{ $json.affiliateLink }}",
+    "marketplace_name": "={{ $json.marketplace }}",
+    "template_scenario": 1
+  }
+}
+```
+
+---
+
 ### GET /health
 
-Verifica status da API
+Verifica status da API (health check).
+
+**Response (200 OK):**
+```json
+{
+  "status": "healthy",
+  "timestamp": "2025-01-04T13:28:11.123456+00:00"
+}
+```
+
+---
 
 ### GET /docs
 
-Documentação Swagger interativa
+Documentação Swagger interativa (FastAPI auto-generated).
+
+Acesse em: `http://localhost:5000/docs`
 
 ---
 

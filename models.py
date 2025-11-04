@@ -38,30 +38,61 @@ class PostStoryRequest(BaseModel):
         max_length=50,
         description="Marketplace name (e.g., 'mercadolivre', 'amazon')"
     )
-    template_scenario: int = Field(
-        ...,
+    template_scenario: Optional[int] = Field(
+        None,
         ge=1,
         le=4,
-        description="Template scenario (1-4)"
+        description="Template scenario (1-4). Optional - will be auto-selected if not provided"
+    )
+    price_old: Optional[str] = Field(
+        None,
+        min_length=1,
+        max_length=50,
+        description="Old/strikethrough price (e.g., 'R$ 48,50'). Optional - shows discount if provided"
+    )
+    coupon_code: Optional[str] = Field(
+        None,
+        min_length=1,
+        max_length=50,
+        description="Coupon code (e.g., 'PROMO10'). Optional - displays coupon section if provided"
     )
 
     @field_validator('template_scenario')
     @classmethod
     def validate_template(cls, v):
-        if v not in [1, 2, 3, 4]:
+        if v is not None and v not in [1, 2, 3, 4]:
             raise ValueError('template_scenario must be 1, 2, 3, or 4')
         return v
 
     model_config = {
         "json_schema_extra": {
-            "example": {
-                "product_name": "Carregador Apple USB-C 20W",
-                "price": "R$ 35,41",
-                "product_image_url": "https://example.com/product.jpg",
-                "affiliate_link": "https://mercadolivre.com.br/product-123",
-                "marketplace_name": "mercadolivre",
-                "template_scenario": 1
-            }
+            "examples": [
+                {
+                    "product_name": "Carregador Apple USB-C 20W",
+                    "price": "R$ 35,41",
+                    "product_image_url": "https://example.com/product.jpg",
+                    "affiliate_link": "https://mercadolivre.com.br/product-123",
+                    "marketplace_name": "mercadolivre",
+                    "template_scenario": 1
+                },
+                {
+                    "product_name": "Fone de Ouvido Bluetooth Sony",
+                    "price": "R$ 89,90",
+                    "price_old": "R$ 129,90",
+                    "product_image_url": "https://example.com/fone.jpg",
+                    "affiliate_link": "https://amazon.com.br/fone-sony",
+                    "marketplace_name": "amazon",
+                    "coupon_code": "TECH15"
+                },
+                {
+                    "product_name": "Smart TV 50 polegadas",
+                    "price": "R$ 1.899,00",
+                    "price_old": "R$ 2.499,00",
+                    "product_image_url": "https://example.com/tv.jpg",
+                    "affiliate_link": "https://magalu.com/tv-50",
+                    "marketplace_name": "magalu"
+                }
+            ]
         }
     }
 
