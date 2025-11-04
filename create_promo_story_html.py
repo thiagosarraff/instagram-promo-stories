@@ -169,25 +169,26 @@ async def create_html_story(
     price_new_int, price_new_cents = format_price_with_cents(price_new_normalized)
 
     # Ajustar tamanho da headline baseado no comprimento para caber em 2 linhas
+    # Todos os tamanhos aumentados em 20%
     headline_length = len(headline)
     if headline_length > 45:
-        headline_size = "38px"  # Headline muito longa
+        headline_size = "46px"  # Headline muito longa (38px * 1.2)
         headline_padding = "20px 50px"
         headline_max_width = "750px"
     elif headline_length > 35:
-        headline_size = "45px"  # Headline longa
+        headline_size = "54px"  # Headline longa (45px * 1.2)
         headline_padding = "22px 55px"
         headline_max_width = "700px"
     elif headline_length > 25:
-        headline_size = "55px"  # Headline média-longa
+        headline_size = "66px"  # Headline média-longa (55px * 1.2)
         headline_padding = "24px 60px"
         headline_max_width = "650px"
     elif headline_length > 20:
-        headline_size = "60px"  # Headline média
+        headline_size = "72px"  # Headline média (60px * 1.2)
         headline_padding = "25px 60px"
         headline_max_width = "600px"
     else:
-        headline_size = "70px"  # Headline curta - fonte padrão
+        headline_size = "84px"  # Headline curta - fonte padrão (70px * 1.2)
         headline_padding = "25px 60px"
         headline_max_width = "90%"
 

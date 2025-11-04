@@ -63,6 +63,14 @@ class PostStoryRequest(BaseModel):
         description="Coupon code (e.g., 'PROMO10'). Optional - displays coupon section if provided"
     )
 
+    @field_validator('headline', 'price_old', 'coupon_code', mode='before')
+    @classmethod
+    def empty_string_to_none(cls, v):
+        """Convert empty strings to None for optional fields"""
+        if isinstance(v, str) and v.strip() == "":
+            return None
+        return v
+
     @field_validator('template_scenario')
     @classmethod
     def validate_template(cls, v):
