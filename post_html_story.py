@@ -72,17 +72,34 @@ async def post_html_story_to_instagram(
 
     print(f"\n✅ Story criado: {story_path}")
 
-    # ETAPA 2: Login no Instagram
+    # ETAPA 2: Login no Instagram com persistência de sessão
     print(f"\n🔐 ETAPA 2: Fazendo login como @{username}...")
     cl = Client()
 
+    # Definir caminho para salvar a sessão (usar pasta montada pelo Docker)
+    session_dir = os.getenv('INSTAGRAM_SESSION_PATH', '/app/session')
+    os.makedirs(session_dir, exist_ok=True)
+    session_file = os.path.join(session_dir, f"session_{username}.json")
+
     try:
-        cl.login(username, password)
-        print("✅ Login bem-sucedido!")
+        # Tentar carregar sessão existente
+        if os.path.exists(session_file):
+            print("   📂 Carregando sessão salva...")
+            cl.load_settings(session_file)
+            cl.login(username, password)
+            print("✅ Login bem-sucedido usando sessão salva!")
+        else:
+            print("   🔑 Primeiro login - salvando sessão para reuso...")
+            cl.login(username, password)
+            cl.dump_settings(session_file)
+            print("✅ Login bem-sucedido e sessão salva!")
     except Exception as e:
         print(f"❌ Erro no login: {e}")
-        print("\n💡 Dica: Se você tem autenticação de 2 fatores:")
-        print("   cl.login(username, password, verification_code='123456')")
+        print("\n💡 SOLUÇÃO NECESSÁRIA:")
+        print("   1. Execute o login manualmente no seu computador local primeiro")
+        print("   2. Isso gerará o arquivo de sessão")
+        print("   3. Copie o arquivo de sessão para o servidor Docker")
+        print("   4. O Instagram pediu verificação porque é um novo dispositivo")
         return False
 
     # ETAPA 3: Postar story
