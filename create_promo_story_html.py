@@ -2,14 +2,14 @@
 Criar Instagram Story promocional usando HTML + Playwright
 Abordagem mais flexível e fácil de manter que manipulação de imagens
 """
-from playwright.sync_api import sync_playwright
+from playwright.async_api import async_playwright
 from pathlib import Path
 import base64
 import requests
 from io import BytesIO
 
 
-def create_html_story(
+async def create_html_story(
     product_image_path: str,
     headline: str,
     product_name: str,
@@ -379,23 +379,23 @@ def create_html_story(
 
     # Capturar screenshot com Playwright
     try:
-        with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True)
-            page = browser.new_page(
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(headless=True)
+            page = await browser.new_page(
                 viewport={'width': 1080, 'height': 1920},
                 device_scale_factor=2  # Alta qualidade
             )
 
             # Carregar HTML
-            page.goto(f"file:///{Path(html_path).absolute()}")
+            await page.goto(f"file:///{Path(html_path).absolute()}")
 
             # Aguardar carregamento
-            page.wait_for_load_state('networkidle')
+            await page.wait_for_load_state('networkidle')
 
             # Obter coordenadas reais do botão
             try:
                 button = page.locator('.button').first
-                box = button.bounding_box()
+                box = await button.bounding_box()
 
                 if box:
                     # Coordenadas normalizadas (0-1) para compatibilidade Instagram
@@ -426,14 +426,14 @@ def create_html_story(
                 print(f"   ⚠️  Usando coordenadas estimadas")
 
             # Capturar screenshot
-            page.screenshot(
+            await page.screenshot(
                 path=output_path,
                 type='jpeg',
                 quality=95,
                 full_page=False
             )
 
-            browser.close()
+            await browser.close()
             print(f"   OK - Screenshot capturado")
 
     except Exception as e:
@@ -445,7 +445,7 @@ def create_html_story(
     return (output_path, button_coords)
 
 
-def create_bulk_stories_html(
+async def create_bulk_stories_html(
     stories_data: list,
     options: dict = None
 ) -> list:
@@ -468,7 +468,7 @@ def create_bulk_stories_html(
     for i, story_data in enumerate(stories_data, 1):
         print(f"\n[{i}/{len(stories_data)}] Processando...")
 
-        result = create_html_story(**story_data)
+        result = await create_html_story(**story_data)
         results.append(result)
 
     print(f"\n{'='*70}")
@@ -479,20 +479,25 @@ def create_bulk_stories_html(
 
 
 if __name__ == "__main__":
+    import asyncio
+
     # Teste básico
     print("Testando geração de story HTML...")
 
-    story, coords = create_html_story(
-        product_image_path="placeholder_product.png",
-        headline="OFERTA IMPERDÍVEL",
-        product_name="Carregador Fonte Apple iPad iPhone Turbo Original USB-C 20W",
-        price_new="R$ 35,41",
-        price_old="R$ 48,50",
-        coupon_code="PROMO10",
-        source="mercadolivre",  # Agora com origem da oferta
-        output_path="story_html_test.jpg"
-    )
+    async def test():
+        story, coords = await create_html_story(
+            product_image_path="placeholder_product.png",
+            headline="OFERTA IMPERDÍVEL",
+            product_name="Carregador Fonte Apple iPad iPhone Turbo Original USB-C 20W",
+            price_new="R$ 35,41",
+            price_old="R$ 48,50",
+            coupon_code="PROMO10",
+            source="mercadolivre",  # Agora com origem da oferta
+            output_path="story_html_test.jpg"
+        )
 
-    if story:
-        print(f"\nStory gerado com sucesso: {story}")
-        print(f"Coordenadas do botão: {coords}")
+        if story:
+            print(f"\nStory gerado com sucesso: {story}")
+            print(f"Coordenadas do botão: {coords}")
+
+    asyncio.run(test())

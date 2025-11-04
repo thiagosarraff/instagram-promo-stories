@@ -110,7 +110,7 @@ async def post_story(request: PostStoryRequest) -> PostStoryResponse:
         # Step 1: Create story image
         logger.info(f"[{request_id}] Creating story image...")
         try:
-            result = create_html_story(
+            result = await create_html_story(
                 product_image_path=request.product_image_url,  # URL will be downloaded by create_html_story
                 headline="OFERTA IMPERDÍVEL",  # Standard headline
                 product_name=request.product_name,
