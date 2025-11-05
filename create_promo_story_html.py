@@ -170,27 +170,33 @@ async def create_html_story(
 
     # Ajustar tamanho da headline baseado no comprimento para caber em 2 linhas
     # Todos os tamanhos aumentados em 20%
+    # Margem superior ajustável para manter proporção 9:16 (1080x1920px)
     headline_length = len(headline)
     if headline_length > 45:
         headline_size = "46px"  # Headline muito longa (38px * 1.2)
         headline_padding = "20px 50px"
         headline_max_width = "750px"
+        headline_margin_top = "120px"  # Reduzida para compensar texto maior
     elif headline_length > 35:
         headline_size = "54px"  # Headline longa (45px * 1.2)
         headline_padding = "22px 55px"
         headline_max_width = "700px"
+        headline_margin_top = "130px"  # Reduzida para compensar texto maior
     elif headline_length > 25:
         headline_size = "66px"  # Headline média-longa (55px * 1.2)
         headline_padding = "24px 60px"
         headline_max_width = "650px"
+        headline_margin_top = "140px"  # Reduzida para compensar texto maior
     elif headline_length > 20:
         headline_size = "72px"  # Headline média (60px * 1.2)
         headline_padding = "25px 60px"
         headline_max_width = "600px"
+        headline_margin_top = "150px"  # Reduzida para compensar texto maior
     else:
         headline_size = "84px"  # Headline curta - fonte padrão (70px * 1.2)
         headline_padding = "25px 60px"
         headline_max_width = "90%"
+        headline_margin_top = "170px"  # Margem padrão
 
     # Template HTML com CSS inline
     html_content = f"""
@@ -213,13 +219,27 @@ async def create_html_story(
         body {{
             font-family: Proxima Nova, -apple-system, Roboto, Arial, sans-serif;
             background: white;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }}
+
+        /* Container principal com dimensões fixas 9:16 */
+        .story-container {{
             width: 1080px;
             height: 1920px;
-            overflow: hidden;
+            background: white;
             display: flex;
             flex-direction: column;
             align-items: center;
-            -webkit-font-smoothing: antialiased;
+            overflow: hidden;
+            position: relative;
+        }}
+
+        /* Espaçador superior flexível */
+        .top-spacer {{
+            flex: 0 1 {headline_margin_top};
+            min-height: 80px;
         }}
 
         /* Headline - largura ajustada ao conteúdo */
@@ -231,12 +251,21 @@ async def create_html_story(
             text-align: center;
             padding: {headline_padding};
             border-radius: 15px;
-            margin-top: 170px;
             text-transform: uppercase;
             line-height: 1.2;
             max-width: {headline_max_width};
             width: fit-content;
             width: -moz-fit-content;
+            flex-shrink: 0;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25), 0 4px 8px rgba(0, 0, 0, 0.15);
+            position: relative;
+            z-index: 10;
+        }}
+
+        /* Espaçador entre headline e imagem - flexível */
+        .image-spacer {{
+            flex: 0 1 50px;
+            min-height: -30px;
         }}
 
         /* Imagem do produto - âncora em 85% */
@@ -245,7 +274,9 @@ async def create_html_story(
             max-width: 918px;
             height: auto;
             object-fit: contain;
-            margin-top: 50px;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 5;
         }}
 
         /* Nome do produto - sem negrito */
@@ -258,12 +289,14 @@ async def create_html_story(
             word-break: break-word;
             margin-top: 32px;
             text-align: left;
+            flex-shrink: 0;
         }}
 
         /* Container de preços */
         .price-container {{
             width: 85%;
             margin-top: 24px;
+            flex-shrink: 0;
         }}
 
         /* Preço antigo - inteiros */
@@ -319,6 +352,7 @@ async def create_html_story(
         .coupon-container {{
             width: 85%;
             margin-top: 32px;
+            flex-shrink: 0;
         }}
 
         /* Cupom - largura automática, alinhado à esquerda */
@@ -350,6 +384,7 @@ async def create_html_story(
         /* Botão - fonte Prompt condensed */
         .button {{
             margin-top: 45px;
+            margin-bottom: 60px;
             background: #1E90FF;
             color: white;
             font-family: 'Prompt', 'Arial Narrow', 'Arial Condensed', Arial, sans-serif;
@@ -364,6 +399,7 @@ async def create_html_story(
             box-shadow: 6px 6px 0 #C8C8C8;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            flex-shrink: 0;
         }}
 
         /* Esconder elementos opcionais */
@@ -373,40 +409,48 @@ async def create_html_story(
     </style>
 </head>
 <body>
-    <!-- Headline -->
-    <div class="headline">{headline}</div>
+    <div class="story-container">
+        <!-- Espaçador superior flexível -->
+        <div class="top-spacer"></div>
 
-    <!-- Imagem do produto -->
-    <img src="{image_base64}" alt="Produto" class="product-image">
+        <!-- Headline -->
+        <div class="headline">{headline}</div>
 
-    <!-- Nome do produto -->
-    <div class="product-name">{product_name}</div>
+        <!-- Espaçador flexível entre headline e imagem -->
+        <div class="image-spacer"></div>
 
-    <!-- Preços -->
-    <div class="price-container">
-        <!-- Preço antigo (se houver) -->
-        <div class="price-old {'hidden' if not price_old_normalized else ''}">{price_old_normalized if price_old_normalized else ''}</div>
+        <!-- Imagem do produto -->
+        <img src="{image_base64}" alt="Produto" class="product-image">
 
-        <!-- Preço novo + Desconto -->
-        <div class="price-new-container">
-            <div class="price-new">
-                {price_new_int}<span class="price-new-cents">{price_new_cents}</span>
+        <!-- Nome do produto -->
+        <div class="product-name">{product_name}</div>
+
+        <!-- Preços -->
+        <div class="price-container">
+            <!-- Preço antigo (se houver) -->
+            <div class="price-old {'hidden' if not price_old_normalized else ''}">{price_old_normalized if price_old_normalized else ''}</div>
+
+            <!-- Preço novo + Desconto -->
+            <div class="price-new-container">
+                <div class="price-new">
+                    {price_new_int}<span class="price-new-cents">{price_new_cents}</span>
+                </div>
+                <div class="discount {'hidden' if not discount_text else ''}">{discount_text}</div>
             </div>
-            <div class="discount {'hidden' if not discount_text else ''}">{discount_text}</div>
         </div>
-    </div>
 
-    <!-- Cupom (se houver) -->
-    <div class="coupon-container {'hidden' if not coupon_code else ''}">
-        <div class="coupon">
-            <span class="coupon-label">CUPOM: </span><span class="coupon-code">{coupon_code if coupon_code else ''}</span>
+        <!-- Cupom (se houver) -->
+        <div class="coupon-container {'hidden' if not coupon_code else ''}">
+            <div class="coupon">
+                <span class="coupon-label">CUPOM: </span><span class="coupon-code">{coupon_code if coupon_code else ''}</span>
+            </div>
         </div>
-    </div>
 
-    <!-- Botão -->
-    <a href="#" class="button">
-        {button_text}
-    </a>
+        <!-- Botão -->
+        <a href="#" class="button">
+            {button_text}
+        </a>
+    </div>
 </body>
 </html>
 """
@@ -439,6 +483,7 @@ async def create_html_story(
 
                 if box:
                     # Coordenadas normalizadas (0-1) para compatibilidade Instagram
+                    # Usando o centro do botão como referência
                     button_coords = {
                         'x': (box['x'] + box['width'] / 2) / 1080,  # Centro X
                         'y': (box['y'] + box['height'] / 2) / 1920,  # Centro Y
@@ -447,6 +492,7 @@ async def create_html_story(
                     }
                     print(f"   OK - Coordenadas do botão capturadas")
                     print(f"        x: {button_coords['x']:.3f}, y: {button_coords['y']:.3f}")
+                    print(f"        width: {button_coords['width']:.3f}, height: {button_coords['height']:.3f}")
                 else:
                     # Fallback se não encontrar o botão
                     button_coords = {
@@ -465,12 +511,13 @@ async def create_html_story(
                 }
                 print(f"   ⚠️  Usando coordenadas estimadas")
 
-            # Capturar screenshot
+            # Capturar screenshot com proporção 9:16 fixa (1080x1920px)
             await page.screenshot(
                 path=output_path,
                 type='jpeg',
                 quality=95,
-                full_page=False
+                full_page=False,
+                clip={'x': 0, 'y': 0, 'width': 1080, 'height': 1920}
             )
 
             await browser.close()
