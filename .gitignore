@@ -69,4 +69,3 @@ docs/
 # Arquivos de teste/debug
 debug_*.py
 test_*.py
-generate_*.py
