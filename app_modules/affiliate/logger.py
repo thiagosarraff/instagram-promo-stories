@@ -13,19 +13,24 @@ class StructuredLogger:
     def __init__(self, name: str, log_file: str = 'logs/affiliate_conversions.log'):
         self.logger = logging.getLogger(name)
 
-        # Ensure logs directory exists
-        log_path = Path(log_file)
-        log_path.parent.mkdir(parents=True, exist_ok=True)
+        # Try to create file handler, fallback to console-only if permission denied
+        try:
+            # Ensure logs directory exists
+            log_path = Path(log_file)
+            log_path.parent.mkdir(parents=True, exist_ok=True)
 
-        # Create file handler with JSON formatter
-        handler = logging.FileHandler(log_file)
-        handler.setFormatter(self._create_json_formatter())
+            # Create file handler with JSON formatter
+            handler = logging.FileHandler(log_file)
+            handler.setFormatter(self._create_json_formatter())
+            self.logger.addHandler(handler)
+        except (PermissionError, OSError) as e:
+            # Fallback: log to console only in production
+            print(f"Warning: Could not create log file {log_file}: {e}")
+            print("Falling back to console-only logging")
 
-        # Also add console handler for immediate feedback
+        # Always add console handler for immediate feedback
         console_handler = logging.StreamHandler()
         console_handler.setFormatter(logging.Formatter('%(levelname)s: %(message)s'))
-
-        self.logger.addHandler(handler)
         self.logger.addHandler(console_handler)
         self.logger.setLevel(logging.INFO)
 
