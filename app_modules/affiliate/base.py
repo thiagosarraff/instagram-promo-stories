@@ -3,8 +3,8 @@
 from abc import ABC, abstractmethod
 from typing import Dict
 import re
-from app.affiliate.exceptions import InvalidLinkError
-from app.affiliate.logger import affiliate_logger
+from app_modules.affiliate.exceptions import InvalidLinkError
+from app_modules.affiliate.logger import affiliate_logger
 
 
 class BaseAffiliateConverter(ABC):

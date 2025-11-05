@@ -14,7 +14,7 @@ from config import settings, log_configuration
 from models import PostStoryRequest, PostStoryResponse, AffiliateConversionStatus
 from create_promo_story_html import create_html_story
 from post_html_story import post_html_story_to_instagram
-from app.affiliate.manager import AffiliateManager
+from app_modules.affiliate.manager import AffiliateManager
 
 # Configure logging with settings
 logging.basicConfig(
@@ -41,7 +41,7 @@ app = FastAPI(
 affiliate_manager = AffiliateManager()
 
 # Register Mercado Livre converter
-from app.affiliate.converters.mercadolivre import MercadoLivreConverter
+from app_modules.affiliate.converters.mercadolivre import MercadoLivreConverter
 
 try:
     ml_converter = MercadoLivreConverter('sessions/ml_cookies.json')

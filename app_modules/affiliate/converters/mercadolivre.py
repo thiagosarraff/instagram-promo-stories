@@ -7,8 +7,8 @@ from pathlib import Path
 from playwright.async_api import async_playwright, PlaywrightContextManager
 from bs4 import BeautifulSoup
 
-from app.affiliate.base import BaseAffiliateConverter
-from app.affiliate.exceptions import (
+from app_modules.affiliate.base import BaseAffiliateConverter
+from app_modules.affiliate.exceptions import (
     ConversionError,
     InvalidLinkError,
     CookieExpiredError,
@@ -17,7 +17,7 @@ from app.affiliate.exceptions import (
     MLProductNotFoundError,
     MLAPIError
 )
-from app.affiliate.logger import affiliate_logger
+from app_modules.affiliate.logger import affiliate_logger
 
 
 class MercadoLivreConverter(BaseAffiliateConverter):

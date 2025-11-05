@@ -2,9 +2,9 @@
 
 from typing import Dict, Optional
 from urllib.parse import urlparse
-from app.affiliate.base import BaseAffiliateConverter
-from app.affiliate.exceptions import MarketplaceNotSupportedError
-from app.affiliate.logger import affiliate_logger
+from app_modules.affiliate.base import BaseAffiliateConverter
+from app_modules.affiliate.exceptions import MarketplaceNotSupportedError
+from app_modules.affiliate.logger import affiliate_logger
 
 
 class AffiliateManager:
