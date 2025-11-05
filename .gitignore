@@ -53,9 +53,20 @@ Thumbs.db
 
 # Logs
 *.log
+logs/
+test_*.log
+debug_*.log
 
 # Instagrapi cache/session
 *.json
+session*.pkl
+sessions/
+*.session
 
 # Documentação dev
 docs/
+
+# Arquivos de teste/debug
+debug_*.py
+test_*.py
+generate_*.py

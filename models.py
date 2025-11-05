@@ -113,6 +113,22 @@ class PostStoryRequest(BaseModel):
     }
 
 
+class AffiliateConversionStatus(BaseModel):
+    """Affiliate link conversion status details"""
+    status: str = Field(
+        ...,
+        description="Conversion status: 'success' or 'fallback'"
+    )
+    marketplace: str = Field(
+        ...,
+        description="Detected marketplace identifier"
+    )
+    error: Optional[str] = Field(
+        None,
+        description="Error message if conversion failed"
+    )
+
+
 class PostStoryResponse(BaseModel):
     """
     Response model for /post-story endpoint
@@ -134,6 +150,10 @@ class PostStoryResponse(BaseModel):
         None,
         description="Error code if failed: VALIDATION_ERROR, RENDERING_FAILED, POSTING_FAILED"
     )
+    affiliate_conversion_status: Optional[AffiliateConversionStatus] = Field(
+        None,
+        description="Affiliate link conversion status"
+    )
 
     model_config = {
         "json_schema_extra": {
@@ -141,13 +161,19 @@ class PostStoryResponse(BaseModel):
                 "status": "success",
                 "message": "Story posted successfully",
                 "story_id": "12345678901234567",
-                "error_code": None
+                "error_code": None,
+                "affiliate_conversion_status": {
+                    "status": "success",
+                    "marketplace": "mercadolivre",
+                    "error": None
+                }
             },
             "example_error": {
                 "status": "error",
                 "message": "Failed to render story image",
                 "story_id": None,
-                "error_code": "RENDERING_FAILED"
+                "error_code": "RENDERING_FAILED",
+                "affiliate_conversion_status": None
             }
         }
     }

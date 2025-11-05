@@ -11,9 +11,10 @@ from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import JSONResponse
 
 from config import settings, log_configuration
-from models import PostStoryRequest, PostStoryResponse
+from models import PostStoryRequest, PostStoryResponse, AffiliateConversionStatus
 from create_promo_story_html import create_html_story
 from post_html_story import post_html_story_to_instagram
+from app.affiliate.manager import AffiliateManager
 
 # Configure logging with settings
 logging.basicConfig(
@@ -35,6 +36,25 @@ app = FastAPI(
     description="API endpoint for posting promotional stories to Instagram via n8n integration",
     version="1.0.0"
 )
+
+# Initialize AffiliateManager
+affiliate_manager = AffiliateManager()
+
+# Register Mercado Livre converter
+from app.affiliate.converters.mercadolivre import MercadoLivreConverter
+
+try:
+    ml_converter = MercadoLivreConverter('sessions/ml_cookies.json')
+    affiliate_manager.register_converter('mercadolivre', ml_converter)
+    logger.info("Mercado Livre converter registered successfully")
+except FileNotFoundError:
+    logger.warning(
+        "Mercado Livre cookies not found. "
+        "ML affiliate conversion will not be available. "
+        "Run: python generate_ml_cookies.py"
+    )
+except Exception as e:
+    logger.error(f"Failed to register Mercado Livre converter: {e}")
 
 
 # Health check endpoint
@@ -75,6 +95,18 @@ async def post_story(request: PostStoryRequest) -> PostStoryResponse:
         # Log incoming request (without sensitive data)
         logger.info(f"[{request_id}] Received request for product: {request.product_name}")
         logger.debug(f"[{request_id}] Template: {request.template_scenario}, Marketplace: {request.marketplace_name}")
+
+        # Step 0: Convert affiliate link (if possible)
+        logger.info(f"[{request_id}] Converting affiliate link...")
+        conversion_result = await affiliate_manager.convert_link(request.affiliate_link)
+
+        # Use converted link (or original if fallback)
+        final_link = conversion_result['link']
+
+        if conversion_result['status'] == 'fallback':
+            logger.warning(f"[{request_id}] Affiliate conversion failed, using original link: {conversion_result['error']}")
+        else:
+            logger.info(f"[{request_id}] Affiliate link converted successfully")
 
         # Auto-select template scenario if not provided
         if request.template_scenario is None:
@@ -192,7 +224,7 @@ async def post_story(request: PostStoryRequest) -> PostStoryResponse:
                 price_old=request.price_old,  # Optional field from request
                 coupon_code=request.coupon_code,  # Optional field from request
                 source=request.marketplace_name,
-                product_url=request.affiliate_link,
+                product_url=final_link,  # Use converted link
                 output_path=output_path
             )
 
@@ -228,7 +260,12 @@ async def post_story(request: PostStoryRequest) -> PostStoryResponse:
             status="success",
             message="Story posted successfully",
             story_id=story_id,
-            error_code=None
+            error_code=None,
+            affiliate_conversion_status=AffiliateConversionStatus(
+                status=conversion_result['status'],
+                marketplace=conversion_result['marketplace'],
+                error=conversion_result['error']
+            )
         )
 
     except HTTPException:
