@@ -46,6 +46,7 @@ env/
 *~
 .bmad-core/
 .claude/
+bash*
 
 # OS
 .DS_Store
