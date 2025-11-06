@@ -32,7 +32,7 @@ python generate_ml_cookies.py
 **Resultado Esperado:**
 ```
 ✅ COOKIES SALVOS COM SUCESSO!
-📁 Arquivo: sessions/ml_cookies.json
+📁 Arquivo: session/ml_cookies.json
 📅 Gerado em: 2025-11-05 17:30:00 UTC
 ⏰ Expira em: ~30 dias
 ```
@@ -73,7 +73,7 @@ Erro: Cookies expirados ou inválidos. Execute generate_ml_cookies.py
 
 Execute cada teste e confirme o resultado:
 
-- [ ] Cookies gerados com sucesso (`sessions/ml_cookies.json` existe)
+- [ ] Cookies gerados com sucesso (`session/ml_cookies.json` existe)
 - [ ] Conversão de link funciona localmente
 - [ ] Link afiliado retornado é diferente do original
 - [ ] Link afiliado contém o domínio `mercadolivre.com` ou similar
@@ -111,7 +111,7 @@ Quando todos os testes passarem localmente:
 
 1. ✅ Commit dos arquivos modificados
 2. 🚀 Deploy no servidor
-3. 📦 Copiar `sessions/ml_cookies.json` para o servidor
+3. 📦 Copiar `session/ml_cookies.json` para o servidor
 
 ---
 
@@ -119,8 +119,8 @@ Quando todos os testes passarem localmente:
 
 ⚠️ **IMPORTANTE:**
 
-- **NÃO** faça commit do arquivo `sessions/ml_cookies.json`
-- Adicione `sessions/ml_cookies.json` ao `.gitignore`
+- **NÃO** faça commit do arquivo `session/ml_cookies.json`
+- Arquivo já protegido pelo `.gitignore` (padrão `*.json` e `session/`)
 - Mantenha os cookies em local seguro
 - Renove os cookies a cada ~30 dias
 
