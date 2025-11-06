@@ -2,23 +2,59 @@
 
 Sistema automatizado para criar e publicar stories promocionais no Instagram via API HTTP.
 
-## ⚡ Deploy Rápido (3 passos)
+## ⚡ Deploy Rápido (4 passos)
 
-### 1. Configure
+### 1. Configure Variáveis de Ambiente
 
 ```bash
 cp .env.example .env
 # Edite .env com suas credenciais do Instagram
 ```
 
-### 2. Execute
+### 2. Gere Sessões de Autenticação
+
+**⚠️ IMPORTANTE:** Antes de iniciar o container, você precisa gerar as sessões de autenticação.
+
+#### 🔐 Sessão do Instagram (Obrigatório)
 
 ```bash
-mkdir -p templates logs session
+# Criar diretórios necessários
+mkdir -p sessions logs
+
+# Gerar sessão do Instagram
+python3 generate_instagram_session.py
+
+# Seguir instruções no terminal:
+# - Login será feito automaticamente
+# - Sessão salva em sessions/
+```
+
+#### 🛒 Cookies do Mercado Livre (Opcional - para links afiliados)
+
+```bash
+# Instalar dependências (se necessário)
+pip3 install -r requirements.txt
+playwright install chromium
+
+# Gerar cookies do Mercado Livre
+python3 generate_ml_cookies.py
+
+# Seguir instruções:
+# 1. Browser abrirá automaticamente
+# 2. Faça login manualmente no Mercado Livre
+# 3. Navegue para o programa de afiliados
+# 4. Cookies serão salvos automaticamente em sessions/
+```
+
+**📝 Nota:** Os cookies do Mercado Livre expiram em ~30 dias. Execute `generate_ml_cookies.py` novamente quando necessário.
+
+### 3. Inicie o Container
+
+```bash
 docker-compose up -d
 ```
 
-### 3. Teste
+### 4. Teste
 
 ```bash
 curl http://localhost:5000/health
@@ -28,10 +64,16 @@ curl http://localhost:5000/health
 
 ## 📋 Requisitos
 
+### Ambiente de Produção (Docker)
 - Docker + Docker Compose
 - Credenciais Instagram
 - 2GB RAM, 2 CPU cores
 - Porta 5000 disponível
+
+### Geração de Sessões (Local/Host)
+- Python 3.11+
+- Playwright (para cookies ML)
+- Dependências: `pip install -r requirements.txt`
 
 ---
 
@@ -48,6 +90,72 @@ LOG_LEVEL=INFO
 ```
 
 **Instagram com 2FA:** Gere senha de app em Configurações → Segurança → Senhas de Apps
+
+---
+
+## 🔗 Sistema de Links Afiliados
+
+O sistema converte automaticamente links de produtos em links afiliados do Mercado Livre.
+
+### Configuração
+
+**1. Gere os Cookies do Mercado Livre:**
+
+```bash
+# Instalar dependências
+pip3 install -r requirements.txt
+playwright install chromium
+
+# Executar gerador de cookies
+python3 generate_ml_cookies.py
+```
+
+**2. Faça Login Manualmente:**
+- Browser abrirá automaticamente
+- Faça login na sua conta do Mercado Livre
+- Acesse o programa de afiliados
+- Aguarde confirmação (cookies salvos em `sessions/ml_cookies.json`)
+
+**3. Reinicie o Container:**
+
+```bash
+docker-compose restart
+```
+
+### Funcionamento
+
+**Com Cookies Válidos:**
+```
+Link original:  https://produto.mercadolivre.com.br/MLB-123456...
+Link afiliado:  https://mercadolivre.com/sec/XXXXXXX ✅
+```
+
+**Sem Cookies (Fallback):**
+```
+Link original:  https://produto.mercadolivre.com.br/MLB-123456...
+Link usado:     https://produto.mercadolivre.com.br/MLB-123456... ⚠️
+```
+
+### Renovação de Cookies
+
+Os cookies expiram em ~30 dias. Quando expirar:
+
+```bash
+python3 generate_ml_cookies.py
+docker-compose restart
+```
+
+**Monitoramento:**
+```bash
+# Ver logs de conversão
+docker logs insta-stories-api | grep -i "conversion"
+
+# Sucesso
+✅ Conversion successful for mercadolivre
+
+# Fallback (cookies expirados)
+⚠️  Conversion failed for mercadolivre, using fallback
+```
 
 ---
 
@@ -267,48 +375,248 @@ docker stats insta-stories-api    # Monitorar recursos
 
 ## 📦 Deploy VPS
 
+### Passo a Passo Completo
+
+#### 1. Clone e Configure
+
 ```bash
 # No VPS
 git clone <repo-url>
 cd insta-stories
+
+# Configure variáveis de ambiente
 cp .env.example .env
-nano .env  # Configure credenciais
-mkdir -p templates logs session
-docker-compose up -d
-curl http://localhost:5000/health
+nano .env  # Edite INSTAGRAM_USERNAME e INSTAGRAM_PASSWORD
+
+# Crie diretórios necessários
+mkdir -p sessions logs
 ```
 
-**Requisitos VPS:** Ubuntu 20.04+, 2GB RAM, 2 CPU, 10GB disco
+#### 2. Gere Sessão do Instagram
+
+```bash
+# Instalar dependências Python
+pip3 install -r requirements.txt
+
+# Gerar sessão do Instagram
+python3 generate_instagram_session.py
+
+# Seguir instruções no terminal
+# Sessão será salva em sessions/
+```
+
+#### 3. (Opcional) Gere Cookies do Mercado Livre
+
+**⚠️ Apenas se precisar de conversão de links afiliados:**
+
+```bash
+# Instalar Playwright
+playwright install chromium
+playwright install-deps chromium
+
+# Gerar cookies (requer X11/display ou VNC)
+python3 generate_ml_cookies.py
+
+# Alternativamente: gere no PC local e copie via SCP
+# scp sessions/ml_cookies.json usuario@servidor:~/insta-stories/sessions/
+```
+
+#### 4. Inicie o Container
+
+```bash
+docker-compose up -d
+```
+
+#### 5. Valide o Deploy
+
+```bash
+# Verificar se container está rodando
+docker ps | grep insta-stories
+
+# Testar health check
+curl http://localhost:5000/health
+
+# Verificar logs
+docker logs insta-stories-api --tail 50
+
+# Verificar conversão de links (se configurado)
+docker logs insta-stories-api | grep -i "mercado.*converter"
+```
+
+### Requisitos VPS
+
+- **OS:** Ubuntu 20.04+ (ou Debian 11+)
+- **RAM:** 2GB mínimo
+- **CPU:** 2 cores
+- **Disco:** 10GB
+- **Portas:** 5000 (ou conforme `.env`)
+
+### Estrutura de Diretórios
+
+```
+~/insta-stories/
+├── sessions/                    ← Sessões e cookies (NÃO versionado)
+│   ├── ml_cookies.json         ← Cookies Mercado Livre (opcional)
+│   └── session_*.json          ← Sessão Instagram (obrigatório)
+├── logs/                        ← Logs da aplicação
+├── .env                         ← Credenciais (NÃO versionado)
+└── docker-compose.yml           ← Configuração Docker
+```
+
+### Troubleshooting VPS
+
+**Container não inicia:**
+```bash
+docker logs insta-stories-api
+# Verificar se sessão do Instagram existe
+ls -la sessions/
+```
+
+**Conversão de links não funciona:**
+```bash
+# Verificar se cookies existem
+docker exec insta-stories-api ls -la /app/sessions/ml_cookies.json
+
+# Regenerar cookies
+python3 generate_ml_cookies.py
+docker-compose restart
+```
+
+**Porta já em uso:**
+```bash
+# Verificar processo usando a porta
+sudo lsof -i :5000
+
+# Alterar porta no .env
+echo "API_PORT=5001" >> .env
+docker-compose up -d
+```
 
 ---
 
 ## 🐛 Troubleshooting
 
-### Credenciais faltando
+### 🔐 Problemas de Autenticação
+
+**Sessão do Instagram não encontrada:**
+```bash
+# Erro: "Instagram session not found"
+# Solução: Gerar sessão
+python3 generate_instagram_session.py
+docker-compose restart
+```
+
+**Cookies do Mercado Livre expirados:**
+```bash
+# Erro: "Conversion failed for mercadolivre, using fallback"
+# Solução: Regenerar cookies
+python3 generate_ml_cookies.py
+docker-compose restart
+
+# Verificar se funcionou
+docker logs insta-stories-api | grep -i "conversion successful"
+```
+
+**Credenciais faltando no .env:**
 ```bash
 cat .env  # Verifique INSTAGRAM_USERNAME e INSTAGRAM_PASSWORD
 ```
 
-### Porta em uso
-```env
-API_PORT=5001  # Use porta diferente
+**Instagram Login Failed:**
+- Use senha de app se tiver 2FA ativado
+- Faça login manual no app do Instagram
+- Aguarde 24-48h antes de tentar novamente
+- Verifique se a conta não está bloqueada
+
+### 🐳 Problemas com Docker
+
+**Container reinicia constantemente:**
+```bash
+docker-compose logs insta-stories  # Ver erro específico
+docker logs insta-stories-api --tail 100
 ```
 
-### Login failed
-- Use senha de app (se 2FA)
-- Login manual no Instagram app
-- Aguarde 24-48h
-
-### Container reinicia
+**Porta em uso:**
 ```bash
-docker-compose logs insta-stories  # Veja o erro
+# Verificar o que está usando a porta
+sudo lsof -i :5000
+
+# Usar porta diferente
+echo "API_PORT=5001" >> .env
+docker-compose down && docker-compose up -d
 ```
 
-### API não responde
+**API não responde:**
 ```bash
-docker-compose ps                  # Container rodando?
-curl http://localhost:5000/health  # Teste health
-docker-compose logs --tail=50      # Ver logs
+docker-compose ps                   # Container rodando?
+curl http://localhost:5000/health   # Teste health
+docker-compose logs --tail=50       # Ver logs
+docker stats insta-stories-api      # Ver recursos
+```
+
+**Volume não montado (sessões não acessíveis):**
+```bash
+# Verificar volumes montados
+docker inspect insta-stories-api | grep -A 10 "Mounts"
+
+# Verificar se sessões estão acessíveis no container
+docker exec insta-stories-api ls -la /app/sessions/
+
+# Recriar container se necessário
+docker-compose down && docker-compose up -d
+```
+
+### 📝 Logs e Debug
+
+**Ver logs em tempo real:**
+```bash
+docker-compose logs -f insta-stories
+```
+
+**Filtrar logs de conversão:**
+```bash
+docker logs insta-stories-api | grep -i "conversion"
+docker logs insta-stories-api | grep -i "affiliate"
+docker logs insta-stories-api | grep -i "mercadolivre"
+```
+
+**Ver últimas 100 linhas:**
+```bash
+docker-compose logs --tail=100 insta-stories
+```
+
+**Logs de requests específicos:**
+```bash
+# Ver requests recebidos
+docker logs insta-stories-api | grep "POST /post-story"
+
+# Ver erros
+docker logs insta-stories-api | grep -i "error"
+```
+
+### 🔄 Renovação Periódica
+
+**Cookies do Mercado Livre (a cada 30 dias):**
+```bash
+python3 generate_ml_cookies.py
+docker-compose restart
+```
+
+**Sessão do Instagram (se expirar):**
+```bash
+python3 generate_instagram_session.py
+docker-compose restart
+```
+
+**Verificar validade:**
+```bash
+# Ver data de geração dos cookies
+docker exec insta-stories-api cat /app/sessions/ml_cookies.json | grep "generated_at"
+
+# Testar conversão
+curl -X POST http://localhost:5000/post-story \
+  -H "Content-Type: application/json" \
+  -d '{"product_name": "Teste", "price": "10", "product_image_url": "https://via.placeholder.com/800", "affiliate_link": "https://produto.mercadolivre.com.br/MLB-123", "marketplace_name": "mercadolivre"}'
 ```
 
 ---
@@ -365,15 +673,22 @@ pytest test_api.py -v
 
 ---
 
-## 📝 Versão 1.0.0
+## 📝 Versão 2.0.0
 
-✅ HTTP API com FastAPI  
-✅ Docker + Docker Compose  
-✅ Environment variables  
-✅ 4 templates de story  
-✅ 28 testes unitários  
+✅ HTTP API com FastAPI
+✅ Docker + Docker Compose
+✅ Environment variables
+✅ 4 templates de story
+✅ Sistema de conversão de links afiliados (Mercado Livre)
+✅ Geração automática de sessões (Instagram + ML)
+✅ Fallback automático para links sem conversão
+✅ Logs estruturados com fallback para console
 
-**Stories implementados:** 1.1, 1.2, 1.3 ✅
+**Features:**
+- ✅ Stories 1.1, 1.2, 1.3
+- ✅ Story 4.1 - Links afiliados Mercado Livre
+- ✅ Story 4.2 - Amazon (preparado, não implementado)
+- ✅ Story 4.3 - Shopee (preparado, não implementado)
 
 ---
 
