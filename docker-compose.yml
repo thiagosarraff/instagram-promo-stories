@@ -40,11 +40,12 @@ services:
           cpus: '1'
           memory: 1G
 
-    # Volume mounts for templates, logs, and session storage
+    # Volume mounts for templates, logs, session storage, and affiliate cookies
     volumes:
       - ./templates:/app/templates:ro
       - ./logs:/app/logs
       - ./session:/app/session
+      - ./sessions:/app/sessions
 
     # Health check
     healthcheck:
