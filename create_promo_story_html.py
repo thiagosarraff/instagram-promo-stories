@@ -268,10 +268,11 @@ async def create_html_story(
             min-height: -30px;
         }}
 
-        /* Imagem do produto - âncora em 85% */
+        /* Imagem do produto - âncora em 85% com altura máxima */
         .product-image {{
             width: 85%;
             max-width: 918px;
+            max-height: 800px;
             height: auto;
             object-fit: contain;
             flex-shrink: 0;
