@@ -442,7 +442,7 @@ async def create_html_story(
         <!-- Cupom (se houver) -->
         <div class="coupon-container {'hidden' if not coupon_code else ''}">
             <div class="coupon">
-                <span class="coupon-label">CUPOM: </span><span class="coupon-code">{coupon_code if coupon_code else ''}</span>
+                <span class="coupon-label">USE O CUPOM: </span><span class="coupon-code">{coupon_code if coupon_code else ''}</span>
             </div>
         </div>
 
