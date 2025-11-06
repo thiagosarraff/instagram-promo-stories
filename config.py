@@ -61,10 +61,10 @@ class Settings(BaseSettings):
         le=600,
         validation_alias="REQUEST_TIMEOUT"
     )
-    instagram_session_path: Path = Field(
-        default=Path("/app/session"),
-        description="Path for Instagram session storage",
-        validation_alias="INSTAGRAM_SESSION_PATH"
+    instagram_sessions_path: Path = Field(
+        default=Path("/app/sessions"),
+        description="Path for Instagram sessions storage",
+        validation_alias="INSTAGRAM_SESSIONS_PATH"
     )
     max_concurrent_requests: int = Field(
         default=5,
@@ -112,6 +112,6 @@ def log_configuration():
     logger.info(f"Template Path: {settings.template_path}")
     logger.info(f"Log Level: {settings.log_level}")
     logger.info(f"Request Timeout: {settings.request_timeout}s")
-    logger.info(f"Instagram Session Path: {settings.instagram_session_path}")
+    logger.info(f"Instagram Sessions Path: {settings.instagram_sessions_path}")
     logger.info(f"Max Concurrent Requests: {settings.max_concurrent_requests}")
     logger.info("=" * 60)

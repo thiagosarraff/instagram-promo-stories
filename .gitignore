@@ -57,11 +57,11 @@ logs/
 test_*.log
 debug_*.log
 
-# Instagrapi cache/session
+# Instagrapi cache/sessions
 *.json
-session*.pkl
+sessions*.pkl
 sessions/
-*.session
+*.sessions
 
 # Documentação dev
 docs/

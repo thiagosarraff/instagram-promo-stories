@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 # Carregar variáveis de ambiente
 load_dotenv()
 
-def generate_session():
+def generate_instagram_session():
     """Gera arquivo de sessão para uso no servidor"""
 
     print("="*70)
@@ -57,4 +57,4 @@ def generate_session():
         print("   3. Execute este script novamente")
 
 if __name__ == "__main__":
-    generate_session()
+    generate_instagram_session()

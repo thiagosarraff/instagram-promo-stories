@@ -44,7 +44,7 @@ affiliate_manager = AffiliateManager()
 from app_modules.affiliate.converters.mercadolivre import MercadoLivreConverter
 
 try:
-    ml_converter = MercadoLivreConverter('session/ml_cookies.json')
+    ml_converter = MercadoLivreConverter('sessions/ml_cookies.json')
     affiliate_manager.register_converter('mercadolivre', ml_converter)
     logger.info("Mercado Livre converter registered successfully")
 except FileNotFoundError:

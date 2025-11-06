@@ -28,7 +28,7 @@ INSTAGRAM_PASSWORD=sua_senha
 
 #### Executar script de geração
 ```bash
-python generate_session.py
+python generate_instagram_session.py
 ```
 
 **Se o Instagram pedir verificação:**
@@ -85,7 +85,7 @@ Teste a API novamente com o n8n. Agora você deve ver nos logs:
 instagram-promo-stories/
 ├── session/                          # ← Pasta montada pelo Docker
 │   └── session_seu_usuario.json     # ← Arquivo de sessão
-├── generate_session.py               # ← Script para gerar sessão
+├── generate_instagram_session.py               # ← Script para gerar sessão
 ├── .env                              # ← Credenciais
 └── docker-compose.yml                # ← Volume: ./session:/app/session
 ```
@@ -128,7 +128,7 @@ instagram-promo-stories/
 ### Renovar sessão a cada 30 dias:
 ```bash
 # Local
-python generate_session.py
+python generate_instagram_session.py
 
 # Copiar para servidor
 scp session_seu_usuario.json usuario@servidor:~/instagram-promo-stories/session/
