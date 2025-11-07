@@ -25,7 +25,7 @@ services:
 
       # Advanced settings (optional)
       - REQUEST_TIMEOUT=${REQUEST_TIMEOUT:-120}
-      - INSTAGRAM_SESSION_PATH=${INSTAGRAM_SESSION_PATH:-/app/session}
+      - INSTAGRAM_SESSION_PATH=${INSTAGRAM_SESSION_PATH:-/app/sessions}
       - MAX_CONCURRENT_REQUESTS=${MAX_CONCURRENT_REQUESTS:-5}
 
     restart: unless-stopped
@@ -44,7 +44,7 @@ services:
     volumes:
       - ./templates:/app/templates:ro
       - ./logs:/app/logs
-      - ./session:/app/session
+      - ./sessions:/app/sessions
 
     # Health check
     healthcheck:

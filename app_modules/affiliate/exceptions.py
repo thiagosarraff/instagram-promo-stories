@@ -45,3 +45,34 @@ class MLProductNotFoundError(AffiliateConversionError):
 class MLAPIError(AffiliateConversionError):
     """Raised for generic Mercado Livre API errors"""
     pass
+
+
+# Amazon specific exceptions
+class AmazonRateLimitError(AffiliateConversionError):
+    """Raised when Amazon rate limit is hit"""
+    pass
+
+
+class AmazonInvalidSessionError(AffiliateConversionError):
+    """Raised when Amazon session/cookies are invalid"""
+    pass
+
+
+class AmazonProductNotFoundError(AffiliateConversionError):
+    """Raised when product is not found on Amazon"""
+    pass
+
+
+class AmazonInvalidAssociateTagError(AffiliateConversionError):
+    """Raised when Amazon Associate Tag format is invalid"""
+    pass
+
+
+class AmazonCaptchaError(AffiliateConversionError):
+    """Raised when Amazon CAPTCHA is detected"""
+    pass
+
+
+class AmazonAPIError(AffiliateConversionError):
+    """Raised for generic Amazon API errors"""
+    pass

@@ -56,6 +56,37 @@ except FileNotFoundError:
 except Exception as e:
     logger.error(f"Failed to register Mercado Livre converter: {e}")
 
+# Register Amazon converter
+from app_modules.affiliate.converters.amazon import AmazonConverter
+import os
+
+amazon_tag = os.getenv('AMAZON_ASSOCIATE_TAG')
+
+if amazon_tag:
+    try:
+        # Cookies are OPTIONAL for Amazon (used only for validation)
+        amazon_converter = AmazonConverter('sessions/amazon_cookies.json', amazon_tag)
+        affiliate_manager.register_converter('amazon', amazon_converter)
+        logger.info(f"Amazon converter registered successfully with tag: {amazon_tag}")
+    except FileNotFoundError:
+        logger.info(
+            "Amazon cookies not found (optional). "
+            "Conversion will work without cookies. "
+            "For advanced validation, run: python generate_amazon_cookies.py"
+        )
+        # Still register converter without cookies (they're optional)
+        amazon_converter = AmazonConverter('sessions/amazon_cookies.json', amazon_tag)
+        affiliate_manager.register_converter('amazon', amazon_converter)
+        logger.info(f"Amazon converter registered (no cookies) with tag: {amazon_tag}")
+    except Exception as e:
+        logger.error(f"Failed to register Amazon converter: {e}")
+else:
+    logger.warning(
+        "AMAZON_ASSOCIATE_TAG not set in environment. "
+        "Amazon affiliate conversion will not be available. "
+        "Set AMAZON_ASSOCIATE_TAG=your-tag-20 in .env file"
+    )
+
 
 # Health check endpoint
 @app.get("/health")
