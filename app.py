@@ -61,13 +61,17 @@ from app_modules.affiliate.converters.amazon import AmazonConverter
 import os
 
 amazon_tag = os.getenv('AMAZON_ASSOCIATE_TAG')
+tracking_id = os.getenv('AMAZON_TRACKING_ID')  # Optional tracking ID
+
+# Use tracking ID if specified, otherwise use associate tag
+final_tag = tracking_id if tracking_id else amazon_tag
 
 if amazon_tag:
     try:
         # Cookies are OPTIONAL for Amazon (used only for validation)
-        amazon_converter = AmazonConverter('sessions/amazon_cookies.json', amazon_tag)
+        amazon_converter = AmazonConverter('sessions/amazon_cookies.json', final_tag)
         affiliate_manager.register_converter('amazon', amazon_converter)
-        logger.info(f"Amazon converter registered successfully with tag: {amazon_tag}")
+        logger.info(f"Amazon converter registered - Store: {amazon_tag}, Tracking: {tracking_id}" if tracking_id else f"Amazon converter registered with tag: {amazon_tag}")
     except FileNotFoundError:
         logger.info(
             "Amazon cookies not found (optional). "
@@ -75,9 +79,9 @@ if amazon_tag:
             "For advanced validation, run: python generate_amazon_cookies.py"
         )
         # Still register converter without cookies (they're optional)
-        amazon_converter = AmazonConverter('sessions/amazon_cookies.json', amazon_tag)
+        amazon_converter = AmazonConverter('sessions/amazon_cookies.json', final_tag)
         affiliate_manager.register_converter('amazon', amazon_converter)
-        logger.info(f"Amazon converter registered (no cookies) with tag: {amazon_tag}")
+        logger.info(f"Amazon converter registered (no cookies) - Store: {amazon_tag}, Tracking: {tracking_id}" if tracking_id else f"Amazon converter registered (no cookies) with tag: {amazon_tag}")
     except Exception as e:
         logger.error(f"Failed to register Amazon converter: {e}")
 else:

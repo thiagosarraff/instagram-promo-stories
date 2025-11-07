@@ -335,5 +335,5 @@ class AmazonConverter(BaseAffiliateConverter):
         """
         # Pattern: alphanumeric + hyphens, ending with -<number>
         # Allows multiple words separated by hyphens
-        pattern = r'^[a-zA-Z0-9]+(-[a-zA-Z0-9]+)*-\d+$'
+        pattern = r'^[a-zA-Z0-9.]+(-[a-zA-Z0-9.]+)*-\d+$'
         return bool(re.match(pattern, tag))
