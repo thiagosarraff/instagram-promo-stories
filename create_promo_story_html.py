@@ -155,15 +155,23 @@ async def create_html_story(
 
     # Separar inteiros e centavos apenas do preço novo
     def format_price_with_cents(price_str):
-        """Separa inteiros e centavos para estilização diferenciada"""
+        """Separa inteiros e centavos para estilização diferenciada com separador de milhar"""
         if not price_str:
             return "", ""
         # Remove R$ e espaços
         clean = price_str.replace('R$', '').strip()
         if ',' in clean:
             inteiros, centavos = clean.split(',')
+            # Adicionar separador de milhar se ≥ 1000
+            inteiros_num = int(inteiros)
+            if inteiros_num >= 1000:
+                inteiros = f"{inteiros_num:,}".replace(',', '.')
             return f"R$ {inteiros}", centavos
         else:
+            # Adicionar separador de milhar se ≥ 1000
+            inteiros_num = int(clean)
+            if inteiros_num >= 1000:
+                clean = f"{inteiros_num:,}".replace(',', '.')
             return f"R$ {clean}", "00"
 
     price_new_int, price_new_cents = format_price_with_cents(price_new_normalized)

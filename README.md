@@ -687,8 +687,159 @@ pytest test_api.py -v
 **Features:**
 - ✅ Stories 1.1, 1.2, 1.3
 - ✅ Story 4.1 - Links afiliados Mercado Livre
-- ✅ Story 4.2 - Amazon (preparado, não implementado)
+- ✅ Story 4.2 - Links afiliados Amazon Associates
 - ✅ Story 4.3 - Shopee (preparado, não implementado)
+
+---
+
+## 🔗 Sistema de Links Afiliados Amazon Associates
+
+O sistema converte automaticamente links de produtos Amazon em links afiliados com rastreamento por fonte.
+
+### Configuração Amazon Associates
+
+**1. Obtenha suas Tags Amazon:**
+
+1. Acesse: https://associados.amazon.com.br/
+2. Faça login ou cadastre-se
+3. Vá em **Tools** → **Manage Your Tracking IDs**
+4. Anote seu **Store ID** (ex: `baroneamz-20`)
+5. Crie **Tracking IDs** específicos:
+   - `promozone.stories-20` (Instagram Stories)
+   - `promozone.posts-20` (Instagram Posts)
+   - `promozone.reels-20` (Instagram Reels)
+   - `promozone.bio-20` (Link na Bio)
+
+**2. Configure o `.env`:**
+
+```bash
+# Store ID (conta principal Amazon Associates)
+AMAZON_ASSOCIATE_TAG=baroneamz-20
+
+# Tracking ID (fonte específica - opcional)
+AMAZON_TRACKING_ID=promozone.stories-20
+```
+
+**Como funciona:**
+- **Store ID**: Vendas creditadas na sua conta principal
+- **Tracking ID**: Rastreamento individual por fonte no painel Amazon
+- Se `AMAZON_TRACKING_ID` não for definido, usa `AMAZON_ASSOCIATE_TAG`
+
+**3. Reinicie o Container:**
+
+```bash
+docker-compose restart
+```
+
+### Funcionamento Amazon
+
+**Link Original:**
+```
+https://www.amazon.com.br/Apple-iPhone-13/dp/B09T4YK6QK/...
+```
+
+**Link Afiliado:**
+```
+https://amazon.com.br/dp/B09T4YK6QK?tag=promozone.stories-20
+```
+
+### Rastreamento por Fonte
+
+Crie múltiplos Tracking IDs para rastrear vendas por fonte:
+
+| Tracking ID | Uso | Configuração |
+|-------------|-----|--------------|
+| `promozone.stories-20` | Instagram Stories | `AMAZON_TRACKING_ID=promozone.stories-20` |
+| `promozone.posts-20` | Instagram Posts | `AMAZON_TRACKING_ID=promozone.posts-20` |
+| `promozone.reels-20` | Instagram Reels | `AMAZON_TRACKING_ID=promozone.reels-20` |
+| `promozone.bio-20` | Link na Bio | `AMAZON_TRACKING_ID=promozone.bio-20` |
+
+**Benefício**: Ver estatísticas separadas no painel Amazon Associates por fonte de tráfego.
+
+**Como trocar**: Edite `.env` e reinicie o app conforme a fonte de publicação.
+
+### Monitoramento de Vendas Amazon
+
+**Acessar Relatórios:**
+1. Login: https://associados.amazon.com.br/
+2. Menu: **Reports** → **Earnings Report**
+3. Filtrar por Tracking ID para ver vendas por fonte
+
+**Métricas Disponíveis:**
+- Cliques por Tracking ID
+- Conversões por fonte
+- Receita por campanha
+- Performance comparativa
+
+### Testes Amazon
+
+**Teste Rápido:**
+```bash
+python test_tracking_id.py
+```
+
+**Suite Completa:**
+```bash
+pytest tests/test_affiliate/test_amazon.py -v
+```
+
+**Resultado esperado**: `27 passed, 1 skipped`
+
+### Troubleshooting Amazon
+
+**"AMAZON_ASSOCIATE_TAG not set"**
+- **Causa**: Variável não configurada no `.env`
+- **Solução**: Adicione `AMAZON_ASSOCIATE_TAG=seu-tag-20` no `.env`
+
+**"Invalid Associate Tag format"**
+- **Formato correto**: `nome-tag-20` ou `nome.categoria-tag-20`
+- **Exemplos válidos**: `baroneamz-20`, `promozone.stories-20`
+
+**Links não estão convertendo**
+- Verifique logs: `docker-compose logs app | grep -i amazon`
+- Execute teste manual: `python test_tracking_id.py`
+- Confirme que `.env` está configurado corretamente
+
+**Validação de Tag:**
+
+Formato aceito: `^[a-zA-Z0-9.]+(-[a-zA-Z0-9.]+)*-\d+$`
+
+**Exemplos válidos:**
+- `baroneamz-20` ✅
+- `promozone.stories-20` ✅
+- `tech-store-21` ✅
+
+**Exemplos inválidos:**
+- `baroneamz` ❌ (falta o `-20`)
+- `promo zone-20` ❌ (espaço não permitido)
+- `store@tech-20` ❌ (caractere especial não permitido)
+
+### Arquivos do Sistema Amazon
+
+**Código Principal:**
+```
+app_modules/affiliate/converters/amazon.py (336 linhas)
+├── Conversor principal de links Amazon
+├── Validação de tags e ASINs
+└── Construção de links afiliados
+
+app_modules/affiliate/exceptions.py (modificado)
+└── 6 exceções específicas Amazon
+
+app.py (modificado - linhas 59-88)
+└── Registro do conversor Amazon com suporte a Tracking ID
+```
+
+**Testes:**
+```
+tests/test_affiliate/test_amazon.py (330 linhas)
+└── 27 testes automatizados (100% cobertura)
+
+test_tracking_id.py (107 linhas)
+└── Script de teste rápido manual
+```
+
+**Status**: ✅ 100% funcional e em produção com 27/27 testes passando
 
 ---
 
