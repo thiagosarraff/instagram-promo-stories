@@ -76,3 +76,29 @@ class AmazonCaptchaError(AffiliateConversionError):
 class AmazonAPIError(AffiliateConversionError):
     """Raised for generic Amazon API errors"""
     pass
+
+
+# Shopee specific exceptions
+class ShopeeRateLimitError(AffiliateConversionError):
+    """Raised when Shopee rate limit is hit"""
+    pass
+
+
+class ShopeeInvalidSessionError(AffiliateConversionError):
+    """Raised when Shopee session/cookies are invalid"""
+    pass
+
+
+class ShopeeProductNotFoundError(AffiliateConversionError):
+    """Raised when product is not found on Shopee"""
+    pass
+
+
+class ShopeeInvalidLinkError(AffiliateConversionError):
+    """Raised when Shopee link format is invalid"""
+    pass
+
+
+class ShopeeAPIError(AffiliateConversionError):
+    """Raised for generic Shopee API errors"""
+    pass

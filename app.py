@@ -91,6 +91,23 @@ else:
         "Set AMAZON_ASSOCIATE_TAG=your-tag-20 in .env file"
     )
 
+# Register Shopee converter
+from app_modules.affiliate.converters.shopee import ShopeeConverter
+
+try:
+    # Shopee uses AppID + Secret authentication (no cookies needed)
+    shopee_converter = ShopeeConverter(default_sub_id='promozonestories')
+    affiliate_manager.register_converter('shopee', shopee_converter)
+    logger.info("Shopee converter registered successfully")
+except ValueError as e:
+    logger.warning(
+        f"Shopee credentials not found: {e}. "
+        "Shopee affiliate conversion will not be available. "
+        "Set SHOPEE_APP_ID and SHOPEE_APP_PASSWORD in .env file"
+    )
+except Exception as e:
+    logger.error(f"Failed to register Shopee converter: {e}")
+
 
 # Health check endpoint
 @app.get("/health")
