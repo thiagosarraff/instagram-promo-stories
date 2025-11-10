@@ -10,6 +10,9 @@ Pillow>=10.0.0
 # Para baixar imagens da web
 requests>=2.31.0
 
+# Para trabalhar com JSON na API da Shopee
+httpx>=0.28.1
+
 # HTML parsing for affiliate link conversion
 beautifulsoup4>=4.12.0
 
