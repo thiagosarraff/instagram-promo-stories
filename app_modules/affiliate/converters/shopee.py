@@ -236,10 +236,10 @@ class ShopeeConverter(BaseAffiliateConverter):
         Returns:
             Hexadecimal signature string
         """
-        # Convert payload to JSON string using DEFAULT Python serialization
-        # This MUST match what httpx sends (which uses json.dumps() default)
-        # Default format: {"key": "value"} with spaces after : and ,
-        payload_str = json.dumps(payload, ensure_ascii=False)
+        # Convert payload to JSON string using COMPACT format (no spaces)
+        # Shopee API requires compact JSON format for signature validation
+        # Format: {"key":"value"} without spaces after : and ,
+        payload_str = json.dumps(payload, ensure_ascii=False, separators=(',', ':'))
 
         # Concatenate: AppId + Timestamp + Payload + Secret
         signature_base = f"{self.app_id}{timestamp}{payload_str}{self.app_secret}"
