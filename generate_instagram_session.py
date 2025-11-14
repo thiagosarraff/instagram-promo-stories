@@ -6,6 +6,7 @@ Execute localmente no seu computador para criar o arquivo de sessão
 import os
 from instagrapi import Client
 from dotenv import load_dotenv
+from pathlib import Path
 
 # Carregar variáveis de ambiente
 load_dotenv()
@@ -31,7 +32,11 @@ def generate_instagram_session():
     print("🔑 Tentando fazer login...")
 
     cl = Client()
-    session_file = f"session_{username}.json"
+    # Ensure sessions directory exists
+    sessions_dir = Path('sessions')
+    sessions_dir.mkdir(exist_ok=True)
+   
+    session_file = f"{sessions_dir}/session_{username}.json"
 
     try:
         # Fazer login

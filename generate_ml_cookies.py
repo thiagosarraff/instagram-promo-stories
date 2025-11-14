@@ -115,12 +115,12 @@ async def generate_ml_cookies():
             'note': 'Gerado automaticamente via generate_ml_cookies.py'
         }
 
-        # Ensure session directory exists
-        session_dir = Path('session')
-        session_dir.mkdir(exist_ok=True)
+        # Ensure sessions directory exists
+        sessions_dir = Path('sessions')
+        sessions_dir.mkdir(exist_ok=True)
 
         # Save to JSON file
-        cookie_file = session_dir / 'ml_cookies.json'
+        cookie_file = sessions_dir / 'ml_cookies.json'
         with open(cookie_file, 'w', encoding='utf-8') as f:
             json.dump(cookie_data, f, indent=2, ensure_ascii=False)
 
@@ -133,7 +133,7 @@ async def generate_ml_cookies():
         print(f"⏰ Expira em: ~{estimated_expiry_days} dias")
         print()
         print("📋 PRÓXIMOS PASSOS:")
-        print("   1. Cookies foram salvos em session/ml_cookies.json")
+        print("   1. Cookies foram salvos em sessions/ml_cookies.json")
         print("   2. Use-os para autenticar conversões de links do ML")
         print("   3. Execute este script novamente quando os cookies expirarem")
         print("   4. Mantenha o arquivo em local seguro (não commit no git!)")
