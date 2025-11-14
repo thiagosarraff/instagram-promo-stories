@@ -35,7 +35,8 @@ def generate_instagram_session():
 
     try:
         # Fazer login
-        cl.login(username, password)
+        verification_code = input("Digite o código de verificação (se necessário): ").strip()
+        cl.login(username, password, verification_code=verification_code)
         print("✅ Login bem-sucedido!")
 
         # Salvar sessão
