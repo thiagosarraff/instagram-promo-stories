@@ -7,6 +7,42 @@ from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 
 
+class SimpleMediaRequest(BaseModel):
+    """
+    Request model for simple /post-story endpoint
+    Accepts media URL for direct posting without affiliate processing
+    """
+    media_url: str = Field(
+        ...,
+        description="URL of the media to post (image or video from linksdobarone.shop)"
+    )
+    media_type: Optional[str] = Field(
+        None,
+        description="Media type: 'photo' or 'video'. Auto-detected if not provided"
+    )
+
+    @field_validator('media_type')
+    @classmethod
+    def validate_media_type(cls, v):
+        if v is not None and v not in ['photo', 'video']:
+            raise ValueError('media_type must be "photo" or "video"')
+        return v
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "media_url": "https://linksdobarone.shop/media/story_20250114.jpg"
+                },
+                {
+                    "media_url": "https://linksdobarone.shop/media/promo_video.mp4",
+                    "media_type": "video"
+                }
+            ]
+        }
+    }
+
+
 class PostStoryRequest(BaseModel):
     """
     Request model for /post-story endpoint

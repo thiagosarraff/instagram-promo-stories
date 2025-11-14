@@ -163,7 +163,72 @@ docker logs insta-stories-api | grep -i "conversion"
 
 ### POST /post-story
 
-Cria e publica um story promocional no Instagram.
+Posta uma mídia simples (imagem ou vídeo) diretamente no Instagram Stories sem processamento de links afiliados ou overlays promocionais.
+
+#### 📥 Request Body (JSON)
+
+| Campo | Tipo | Obrigatório | Descrição | Exemplo |
+|-------|------|-------------|-----------|---------|
+| `media_url` | string | ✅ Sim | URL da mídia (imagem ou vídeo) | `"https://linksdobarone.shop/media/story.jpg"` |
+| `media_type` | string | ⚪ Opcional | Tipo da mídia: `"photo"` ou `"video"` (auto-detectado se omitido) | `"photo"` |
+
+#### 📤 Response
+
+**Sucesso (200 OK):**
+```json
+{
+  "status": "success",
+  "message": "Story posted successfully",
+  "story_id": "3758456134287145845",
+  "error_code": null,
+  "affiliate_conversion_status": null
+}
+```
+
+**Erro de Download (400 Bad Request):**
+```json
+{
+  "status": "error",
+  "message": "Failed to download media from URL: HTTP 404",
+  "story_id": null,
+  "error_code": "DOWNLOAD_FAILED"
+}
+```
+
+**Erro de Postagem (500 Internal Server Error):**
+```json
+{
+  "status": "error",
+  "message": "Failed to post story: Instagram API error",
+  "story_id": null,
+  "error_code": "POSTING_FAILED"
+}
+```
+
+#### 📝 Exemplo (cURL)
+
+```bash
+# Postar imagem
+curl -X POST http://localhost:5000/post-story \
+  -H "Content-Type: application/json" \
+  -d '{
+    "media_url": "https://linksdobarone.shop/media/promo.jpg"
+  }'
+
+# Postar vídeo
+curl -X POST http://localhost:5000/post-story \
+  -H "Content-Type: application/json" \
+  -d '{
+    "media_url": "https://linksdobarone.shop/media/video.mp4",
+    "media_type": "video"
+  }'
+```
+
+---
+
+### POST /create-post-affiliate-story
+
+Cria e publica um story promocional com overlay de produto, preço e link afiliado no Instagram.
 
 #### 📥 Request Body (JSON)
 
@@ -285,7 +350,7 @@ Cria e publica um story promocional no Instagram.
 #### 📝 Exemplo Completo (cURL)
 
 ```bash
-curl -X POST http://localhost:5000/post-story \
+curl -X POST http://localhost:5000/create-post-affiliate-story \
   -H "Content-Type: application/json" \
   -d '{
     "product_name": "Carregador Fonte Apple iPad iPhone Turbo Original USB-C 20W",
@@ -304,7 +369,7 @@ curl -X POST http://localhost:5000/post-story \
 ```json
 {
   "method": "POST",
-  "url": "http://localhost:5000/post-story",
+  "url": "http://localhost:5000/create-post-affiliate-story",
   "headers": {
     "Content-Type": "application/json"
   },
