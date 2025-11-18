@@ -59,6 +59,7 @@ class AffiliateManager:
             # Map domains to marketplace identifiers
             marketplace_map = {
                 'mercadolivre.com.br': 'mercadolivre',
+                'mercadolivre.com': 'mercadolivre',  # Short links: /sec/xxxxx
                 'produto.mercadolivre.com.br': 'mercadolivre',
                 'amazon.com.br': 'amazon',
                 'www.amazon.com.br': 'amazon',
