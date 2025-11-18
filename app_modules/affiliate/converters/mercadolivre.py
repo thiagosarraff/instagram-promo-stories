@@ -269,43 +269,73 @@ class MercadoLivreConverter(BaseAffiliateConverter):
                 # Try multiple strategies to find product link
                 product_link = await page.evaluate("""
                     () => {
-                        // Strategy 1: Look for direct product links
-                        const productSelectors = [
-                            'a[href*="produto.mercadolivre.com.br/MLB-"]',
-                            'a[href*="/MLB-"]',
-                            'a[href*="MLB"]'
+                        // Strategy 1: Specific selector for social profile product cards
+                        const specificSelectors = [
+                            // Social profile page product card
+                            '.poly-card__content a[href*="MLB-"]',
+                            'div.poly-card__content a[href*="produto.mercadolivre"]',
+                            // Generic product card selectors
+                            '.andes-card a[href*="MLB-"]',
+                            'article a[href*="MLB-"]'
                         ];
 
-                        for (const selector of productSelectors) {
+                        for (const selector of specificSelectors) {
                             const element = document.querySelector(selector);
-                            if (element && element.href.includes('MLB')) {
+                            if (element && element.href && element.href.includes('MLB-')) {
                                 return element.href;
                             }
                         }
 
-                        // Strategy 2: Look for "Ir para produto" button/link
+                        // Strategy 2: Look for direct product links (broad search)
+                        const productSelectors = [
+                            'a[href*="produto.mercadolivre.com.br/MLB-"]',
+                            'a[href*="/MLB-"]'
+                        ];
+
+                        for (const selector of productSelectors) {
+                            const element = document.querySelector(selector);
+                            if (element && element.href && element.href.includes('MLB-')) {
+                                return element.href;
+                            }
+                        }
+
+                        // Strategy 3: Look for "Ir para produto" button/link
                         const buttonTexts = ['Ir para produto', 'Ver produto', 'Acessar produto'];
                         for (const text of buttonTexts) {
                             const buttons = Array.from(document.querySelectorAll('button, a'));
-                            const button = buttons.find(b => b.textContent.trim().includes(text));
+                            const button = buttons.find(b => b.textContent && b.textContent.trim().includes(text));
                             if (button) {
                                 // Check if button is inside a link
                                 const link = button.closest('a') || button.parentElement.querySelector('a');
-                                if (link && link.href.includes('MLB')) {
+                                if (link && link.href && link.href.includes('MLB-')) {
                                     return link.href;
                                 }
                                 // Check if button itself is a link
-                                if (button.tagName === 'A' && button.href.includes('MLB')) {
+                                if (button.tagName === 'A' && button.href && button.href.includes('MLB-')) {
                                     return button.href;
                                 }
                             }
                         }
 
-                        // Strategy 3: Find ANY link with MLB code
+                        // Strategy 4: Find ANY link with MLB code (more strict)
                         const allLinks = Array.from(document.querySelectorAll('a'));
-                        const mlbLink = allLinks.find(a => a.href && /MLB-?\\d+/.test(a.href));
-                        if (mlbLink) {
-                            return mlbLink.href;
+                        const mlbLinks = allLinks.filter(a => {
+                            if (!a.href) return false;
+                            // Must contain MLB- followed by digits
+                            if (!/MLB-\\d+/.test(a.href)) return false;
+                            // Exclude homepage and search links
+                            if (a.href.includes('hp.mercadolibre.com')) return false;
+                            if (a.href.includes('/search')) return false;
+                            return true;
+                        });
+
+                        if (mlbLinks.length > 0) {
+                            // Prefer links with produto.mercadolivre.com.br
+                            const productLink = mlbLinks.find(a => a.href.includes('produto.mercadolivre'));
+                            if (productLink) return productLink.href;
+
+                            // Otherwise return first valid MLB link
+                            return mlbLinks[0].href;
                         }
 
                         return null;
