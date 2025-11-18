@@ -452,7 +452,7 @@ async def create_post_affiliate_story(request: PostStoryRequest) -> PostStoryRes
         # Step 2: Post to Instagram
         logger.info(f"[{request_id}] Posting to Instagram...")
         try:
-            success, story_id = await post_html_story_to_instagram(
+            success, story_id, error_msg = await post_html_story_to_instagram(
                 username=instagram_username,
                 password=instagram_password,
                 product_image_path=request.product_image_url,
@@ -467,14 +467,57 @@ async def create_post_affiliate_story(request: PostStoryRequest) -> PostStoryRes
             )
 
             if not success:
-                logger.error(f"[{request_id}] Instagram posting returned False")
+                logger.error(f"[{request_id}] Instagram posting failed: {error_msg}")
+
+                # Build detailed error message
+                error_details = {
+                    "status": "error",
+                    "message": f"Failed to post story to Instagram: {error_msg}",
+                    "error_code": "POSTING_FAILED"
+                }
+
+                # Add affiliate conversion context if relevant
+                if conversion_result['status'] == 'fallback':
+                    error_details["affiliate_note"] = (
+                        f"Affiliate conversion failed ({conversion_result['error']}), "
+                        f"fallback link was used which may have caused issues"
+                    )
+
+                # Detect specific error types and provide helpful suggestions
+                error_lower = error_msg.lower() if error_msg else ""
+
+                if "link is too long" in error_lower or "try a shorter" in error_lower:
+                    error_details["error_code"] = "LINK_TOO_LONG"
+                    error_details["suggestion"] = (
+                        "The affiliate link is too long for Instagram. "
+                        "Consider using a URL shortener or check affiliate conversion settings."
+                    )
+                elif "url not allowed" in error_lower or "not allowed in affiliates" in error_lower:
+                    error_details["error_code"] = "AFFILIATE_URL_NOT_ALLOWED"
+                    error_details["suggestion"] = (
+                        "This URL is not eligible for affiliate conversion. "
+                        "The marketplace may not support affiliate links for this type of URL."
+                    )
+                elif "challenge" in error_lower or "checkpoint" in error_lower:
+                    error_details["error_code"] = "INSTAGRAM_CHALLENGE"
+                    error_details["suggestion"] = (
+                        "Instagram requires verification. Please complete the security challenge "
+                        "on the Instagram app or website before continuing."
+                    )
+                elif "login" in error_lower or "authentication" in error_lower:
+                    error_details["error_code"] = "AUTHENTICATION_FAILED"
+                    error_details["suggestion"] = (
+                        "Instagram authentication failed. Verify credentials and session state."
+                    )
+                elif "rate limit" in error_lower or "too many" in error_lower:
+                    error_details["error_code"] = "RATE_LIMIT"
+                    error_details["suggestion"] = (
+                        "Instagram rate limit reached. Please wait a few minutes before trying again."
+                    )
+
                 raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail={
-                        "status": "error",
-                        "message": "Failed to post story to Instagram",
-                        "error_code": "POSTING_FAILED"
-                    }
+                    detail=error_details
                 )
 
             logger.info(f"[{request_id}] Story posted successfully to Instagram (ID: {story_id})")

@@ -46,7 +46,8 @@ async def post_html_story_to_instagram(
         output_path: Caminho para salvar a imagem gerada
 
     Returns:
-        tuple: (success: bool, story_id: str) - True se criou e postou com sucesso, story ID se disponível
+        tuple: (success: bool, story_id: str, error_msg: str) - True se criou e postou com sucesso,
+               story ID se disponível, mensagem de erro específica se falhou
     """
 
     print("=" * 70)
@@ -67,8 +68,9 @@ async def post_html_story_to_instagram(
     )
 
     if not story_path:
-        print("\n❌ FALHA: Não foi possível criar o story")
-        return (False, None)
+        error_msg = "Não foi possível criar o story"
+        print(f"\n❌ FALHA: {error_msg}")
+        return (False, None, error_msg)
 
     print(f"\n✅ Story criado: {story_path}")
 
@@ -94,13 +96,14 @@ async def post_html_story_to_instagram(
             cl.dump_settings(session_file)
             print("✅ Login bem-sucedido e sessão salva!")
     except Exception as e:
+        error_msg = f"Instagram authentication failed: {str(e)}"
         print(f"❌ Erro no login: {e}")
         print("\n💡 SOLUÇÃO NECESSÁRIA:")
         print("   1. Execute o login manualmente no seu computador local primeiro")
         print("   2. Isso gerará o arquivo de sessão")
         print("   3. Copie o arquivo de sessão para o servidor Docker")
         print("   4. O Instagram pediu verificação porque é um novo dispositivo")
-        return (False, None)
+        return (False, None, error_msg)
 
     # ETAPA 3: Postar story
     print(f"\n📤 ETAPA 3: Postando story no Instagram...")
@@ -144,11 +147,12 @@ async def post_html_story_to_instagram(
         print("=" * 70)
         print(f"\n📱 Verifique seu Instagram para ver o story publicado!")
 
-        return (True, str(story.pk))
+        return (True, str(story.pk), None)
 
     except Exception as e:
-        print(f"\n❌ ERRO ao postar story: {e}")
-        return (False, None)
+        error_msg = str(e)
+        print(f"\n❌ ERRO ao postar story: {error_msg}")
+        return (False, None, error_msg)
 
 
 async def main():
